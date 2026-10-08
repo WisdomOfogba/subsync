@@ -123,12 +123,14 @@ export default function Dashboard() {
     if (!user?.email) return alert("User email is missing");
     setIsAlertTesting(sub.id);
     try {
-      const res = await fetch('/api/alerts/brevo', {
+      const res = await fetch('/api/alerts/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userEmail: user.email,
           userName: user.name || "User",
+          telegramChatId: user.telegramChatId || "",
+          alertPreference: user.telegramChatId ? "Email & Telegram" : "Email Only",
           subscriptionName: sub.name,
           amountDue: sub.amount,
           daysLeft: 3
@@ -136,7 +138,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        alert("Alert sent successfully to " + user.email + "!");
+        alert(data.message);
       } else {
         alert("Failed: " + data.error);
       }
