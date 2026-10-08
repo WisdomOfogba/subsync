@@ -9,19 +9,28 @@ export default function LoginPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
     if (formData.email) {
-      // Create a mock user if one doesn't exist just so login works for demo
-      const existing = localStorage.getItem("subsync_user");
-      if (!existing) {
-        localStorage.setItem("subsync_user", JSON.stringify({ 
-          name: "Demo User", 
-          email: formData.email,
-          walletBalance: 125000 
-        }));
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: formData.email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem("subsync_user", JSON.stringify(data.user));
+          router.push("/dashboard");
+        } else {
+          setErrorMsg(data.error || "Login failed");
+        }
+      } catch (error) {
+        setErrorMsg("Network error occurred");
       }
-      router.push("/dashboard");
     }
   };
 

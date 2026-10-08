@@ -9,16 +9,28 @@ export default function SignupPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
 
-  const handleSignup = (e: React.FormEvent) => {
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg("");
     if (formData.name && formData.email) {
-      // Store in localStorage to mock backend auth
-      localStorage.setItem("subsync_user", JSON.stringify({ 
-        name: formData.name, 
-        email: formData.email,
-        walletBalance: 125000 
-      }));
-      router.push("/dashboard");
+      try {
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: formData.name, email: formData.email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem("subsync_user", JSON.stringify(data.user));
+          router.push("/dashboard");
+        } else {
+          setErrorMsg(data.error || "Signup failed");
+        }
+      } catch (error) {
+        setErrorMsg("Network error occurred");
+      }
     }
   };
 

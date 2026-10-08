@@ -8,19 +8,26 @@ import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const router = useRouter();
-  const [user, setUser] = useState({ name: "Builder", email: "" });
+  const [user, setUser] = useState<{id?: string, name: string, email: string}>({ name: "Builder", email: "" });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [subscriptions, setSubscriptions] = useState([
-    { id: 1, name: "Netflix", amount: 4500, nextDate: "2026-10-15", category: "Streaming", status: "Active" },
-    { id: 2, name: "NEPA Bill", amount: 15000, nextDate: "2026-10-20", category: "Utilities", status: "Pending Approval" },
-    { id: 3, name: "Ajo Contribution", amount: 50000, nextDate: "2026-10-30", category: "Savings", status: "Active" },
-    { id: 4, name: "Spotify", amount: 900, nextDate: "2026-11-02", category: "Streaming", status: "Active" },
-  ]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("subsync_user");
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const savedUserStr = localStorage.getItem("subsync_user");
+    if (savedUserStr) {
+      const savedUser = JSON.parse(savedUserStr);
+      setUser(savedUser);
+      // Fetch user's actual subscriptions
+      fetch(`/api/subscriptions?userId=${savedUser.id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setSubscriptions(data.subscriptions);
+          }
+          setLoading(false);
+        })
+        .catch(() => setLoading(false));
     } else {
       router.push("/login");
     }
@@ -30,28 +37,57 @@ export default function Dashboard() {
 
   const totalObligation = subscriptions.reduce((sum, sub) => sum + sub.amount, 0);
 
-  const handleAddCommitment = (e: React.FormEvent) => {
+  const handleAddCommitment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSub.name || !newSub.amount || !newSub.date) return;
+    if (!newSub.name || !newSub.amount || !newSub.date || !user.id) return;
     
-    setSubscriptions([...subscriptions, {
-      id: Date.now(),
-      name: newSub.name,
-      amount: parseInt(newSub.amount),
-      nextDate: newSub.date,
-      category: newSub.category,
-      status: "Active"
-    }]);
-    
-    setIsModalOpen(false);
-    setNewSub({ name: "", amount: "", date: "", category: "Utilities" });
+    try {
+      const res = await fetch('/api/subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          name: newSub.name,
+          amount: newSub.amount,
+          category: newSub.category,
+          nextChargeDate: newSub.date
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubscriptions([data.subscription, ...subscriptions]);
+        setIsModalOpen(false);
+        setNewSub({ name: "", amount: "", date: "", category: "Utilities" });
+      }
+    } catch (error) {
+      console.error("Failed to add commitment");
+    }
   };
 
-  const approvePending = (id: number) => {
-    setSubscriptions(subscriptions.map(sub => 
-      sub.id === id ? { ...sub, status: "Active" } : sub
-    ));
+  const approvePending = async (id: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'ACTIVE' })
+      });
+      if (res.ok) {
+        setSubscriptions(subscriptions.map(sub => 
+          sub.id === id ? { ...sub, status: "Active" } : sub
+        ));
+      }
+    } catch (error) {
+      console.error("Failed to approve");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
@@ -167,7 +203,7 @@ export default function Dashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-medium">₦{sub.amount.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-muted-foreground">{new Date(sub.nextDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{new Date(sub.nextChargeDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
                     <td className="px-6 py-4 text-right">
                       {sub.status === 'Active' ? (
                         <span className="inline-flex items-center text-xs font-medium text-green-600">
