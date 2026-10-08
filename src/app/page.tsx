@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { ArrowRight, ShieldCheck, CreditCard, BellRing, CheckCircle2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useStore } from "@/store/useStore";
+import Navbar from "@/components/layout/Navbar";
 
 export default function LandingPage() {
   const { user, setUser } = useStore();
@@ -20,6 +21,7 @@ export default function LandingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white selection:bg-primary/20">
+      <Navbar />
       <main className="flex-grow pt-24">
         
         {/* Hero Section */}

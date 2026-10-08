@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/Button";
 import { CheckCircle2, ShieldCheck, X } from "lucide-react";
 import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
 
 export default function Pricing() {
   return (
     <div className="flex min-h-screen flex-col bg-white">
+      <Navbar />
       <main className="flex-grow pt-32 pb-24 px-6">
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-gray-900 tracking-tight">

@@ -159,13 +159,13 @@ export default function Dashboard() {
             <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg">SubSync</div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:flex flex-col text-right">
+            <div className="hidden md:flex flex-col text-right mr-2">
               <span className="text-sm font-medium text-gray-900">{user?.name}</span>
               <span className="text-xs text-gray-500">{user?.email}</span>
             </div>
-            <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200">
+            <button onClick={() => router.push("/settings")} className="h-9 w-9 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center border border-gray-200 transition-colors cursor-pointer" title="Settings">
               <span className="text-sm font-medium text-gray-600">{user?.name?.charAt(0) || 'U'}</span>
-            </div>
+            </button>
           </div>
         </div>
       </header>
