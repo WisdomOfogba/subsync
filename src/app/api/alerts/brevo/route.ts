@@ -19,8 +19,8 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         sender: {
-          name: "SubSync Guardian",
-          email: "alerts@subsync.app" // Replace with your verified Brevo sender email
+          name: process.env.BREVO_SENDER_NAME || "SubSync Guardian",
+          email: process.env.BREVO_SENDER_EMAIL || "alerts@subsync.app"
         },
         to: [
           {
