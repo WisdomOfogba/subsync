@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { status } = await req.json();
-    const subId = params.id;
+    const { id: subId } = await params;
 
     if (!status) {
       return NextResponse.json({ error: "Status is required" }, { status: 400 });
@@ -21,10 +21,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     await prisma.subscription.delete({
-      where: { id: params.id }
+      where: { id }
     });
     return NextResponse.json({ success: true });
   } catch (error: any) {
