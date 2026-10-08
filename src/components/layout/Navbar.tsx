@@ -1,33 +1,60 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { useEffect, useState } from "react";
+import { useStore } from "@/store/useStore";
 
-export function Navbar() {
+export default function Navbar() {
+  const { user, setUser } = useStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedUser = localStorage.getItem("subsync_user");
+    if (savedUser && !user) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [user, setUser]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("subsync_user");
+    setUser(null);
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white shadow-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="flex items-center">
-          <img 
-            src="/Subsync Logo and Text.jpg" 
-            alt="SubSync" 
-            className="h-10 w-auto object-contain"
-          />
+    <nav className="fixed top-0 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md z-50">
+      <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <Link href="/" className="flex items-center gap-2">
+          <div className="font-heading font-semibold tracking-tight text-gray-900 text-xl">SubSync</div>
         </Link>
         
-        <nav className="hidden md:flex gap-6">
-          <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground">Home</Link>
-          <Link href="/pricing" className="text-sm font-medium text-muted-foreground hover:text-foreground">Pricing</Link>
-          <Link href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground">Features</Link>
-        </nav>
+        <div className="hidden md:flex items-center gap-8">
+          <Link href="#features" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Features</Link>
+          <Link href="#how-it-works" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">How it Works</Link>
+          <Link href="/pricing" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">Pricing</Link>
+        </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/login">
-            <Button variant="ghost" className="hidden sm:inline-flex text-slate-600 hover:text-slate-900">Sign In</Button>
-          </Link>
-          <Link href="/signup">
-            <Button className="bg-primary text-white hover:bg-primary/90">Get Started</Button>
-          </Link>
+          {mounted && user ? (
+            <>
+              <Link href="/dashboard">
+                <Button variant="outline" className="rounded-full shadow-sm">Dashboard</Button>
+              </Link>
+              <Button onClick={handleLogout} variant="ghost" className="rounded-full text-gray-500 hover:text-gray-900">
+                Log out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block">Log in</Link>
+              <Link href="/signup">
+                <Button className="rounded-full shadow-sm">Get Started</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
-    </header>
+    </nav>
   );
 }
