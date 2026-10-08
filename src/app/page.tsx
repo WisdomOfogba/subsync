@@ -29,11 +29,6 @@ export default function LandingPage() {
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-50 via-white to-white" />
           
           <div className="container mx-auto max-w-5xl">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-              Powered by Nomba & Bridgecard
-            </div>
-            
             <h1 className="font-heading text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 mb-6 leading-[1.1] animate-in fade-in slide-in-from-bottom-6 duration-1000">
               Stop Subscription Leaks.<br />
               <span className="text-primary relative inline-block mt-2">
@@ -227,7 +222,10 @@ export default function LandingPage() {
       
       <footer className="border-t border-gray-100 bg-white py-12">
         <div className="container mx-auto px-6 max-w-5xl flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-          <div className="font-heading font-semibold text-gray-900 mb-4 md:mb-0">SubSync</div>
+          <div className="flex items-center gap-3 mb-4 md:mb-0">
+            <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-6 w-6 rounded-sm object-contain" />
+            <div className="font-heading font-semibold text-gray-900">SubSync</div>
+          </div>
           <div>&copy; 2026 SubSync. All rights reserved.</div>
         </div>
       </footer>

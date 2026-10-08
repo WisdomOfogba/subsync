@@ -80,7 +80,10 @@ export default function Settings() {
             <button onClick={() => router.push("/dashboard")} className="text-gray-400 hover:text-gray-900 transition-colors">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg">Settings</div>
+            <div className="flex items-center gap-3">
+              <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-8 w-8 rounded-md object-contain" />
+              <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg hidden sm:block">Settings</div>
+            </div>
           </div>
         </div>
       </header>
@@ -154,7 +157,7 @@ export default function Settings() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900">Connect Telegram Bot</h4>
                       <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        To receive instant alerts on Telegram, start a chat with <strong>@SubSyncBot</strong>, type <code className="bg-gray-100 px-1 rounded">/start</code>, and paste your Chat ID below.
+                        To receive instant alerts on Telegram, start a chat with <strong>@subsy_nc_bot</strong>, type <code className="bg-gray-100 px-1 rounded">/start</code>, and paste your Chat ID below.
                       </p>
                     </div>
                     <input 

@@ -156,7 +156,10 @@ export default function Dashboard() {
             <button onClick={() => router.push("/")} className="text-gray-400 hover:text-gray-900 transition-colors">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg">SubSync</div>
+            <div className="flex items-center gap-3">
+              <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-8 w-8 rounded-md object-contain" />
+              <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg hidden sm:block">SubSync</div>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col text-right mr-2">
