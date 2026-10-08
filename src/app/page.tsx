@@ -95,34 +95,129 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Remainder of the Landing Page content... */}
-        {/* We can keep this simple and elegant for the MVP presentation */}
-        <section className="border-t border-slate-100 bg-slate-50 py-24">
-          <div className="container mx-auto px-6 max-w-5xl text-center">
-            <h2 className="text-3xl font-heading font-bold text-slate-900 mb-12">How it works</h2>
-            <div className="grid md:grid-cols-3 gap-8 text-left">
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-                  <CreditCard className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">1. One Deposit</h3>
-                <p className="text-slate-600">Fund your SubSync wallet once a month. No need to link all your bank accounts.</p>
+        {/* The Problem Section */}
+        <section className="border-t border-slate-100 bg-white py-24">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="grid md:grid-cols-2 gap-16 items-center">
+              <div>
+                <h2 className="text-3xl font-heading font-bold text-slate-900 mb-6">The System is Designed Against You</h2>
+                <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                  Companies rely on you forgetting. They make signing up frictionless but hide the cancellation button behind dark patterns and endless phone menus. 
+                </p>
+                <p className="text-lg text-slate-600 leading-relaxed">
+                  When your payments are scattered across different cards and apps, it's incredibly easy to lose track of how much money is quietly leaking from your accounts every month.
+                </p>
               </div>
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="h-12 w-12 rounded-xl bg-orange-100 flex items-center justify-center mb-6">
-                  <BellRing className="h-6 w-6 text-orange-600" />
+              <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-inner">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-red-100">
+                    <span className="text-sm font-semibold text-slate-900">Gym Membership</span>
+                    <span className="text-sm font-bold text-red-500">- ₦25,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-red-100">
+                    <span className="text-sm font-semibold text-slate-900">Forgotten VPN</span>
+                    <span className="text-sm font-bold text-red-500">- ₦6,500</span>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-white rounded-xl shadow-sm border border-red-100">
+                    <span className="text-sm font-semibold text-slate-900">Cloud Storage</span>
+                    <span className="text-sm font-bold text-red-500">- ₦3,200</span>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">2. We Alert You</h3>
-                <p className="text-slate-600">Three days before any charge, we send a notification to your email or Telegram.</p>
-              </div>
-              <div className="p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
-                <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center mb-6">
-                  <CheckCircle2 className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">3. You Control It</h3>
-                <p className="text-slate-600">Approve or snooze the transaction. Never get caught by a free trial trap again.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section id="how-it-works" className="border-t border-slate-100 bg-slate-50 py-24">
+          <div className="container mx-auto px-6 max-w-5xl text-center">
+            <div className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-6">
+              The SubSync Workflow
+            </div>
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-slate-900 mb-16">Your Financial Guardian</h2>
+            
+            <div className="grid md:grid-cols-3 gap-8 text-left">
+              <div className="p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:border-primary/30 transition-colors">
+                <div className="h-14 w-14 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
+                  <CreditCard className="h-7 w-7 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">1. Centralized Deposit</h3>
+                <p className="text-slate-600 leading-relaxed">Fund your SubSync wallet once a month. Stop linking your primary bank cards to dozens of random websites.</p>
+              </div>
+              <div className="p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:border-orange-500/30 transition-colors">
+                <div className="h-14 w-14 rounded-2xl bg-orange-50 flex items-center justify-center mb-6">
+                  <BellRing className="h-7 w-7 text-orange-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">2. Early Warnings</h3>
+                <p className="text-slate-600 leading-relaxed">Three days before any scheduled charge or free-trial conversion, our system sends you an actionable alert.</p>
+              </div>
+              <div className="p-8 bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 hover:border-green-500/30 transition-colors">
+                <div className="h-14 w-14 rounded-2xl bg-green-50 flex items-center justify-center mb-6">
+                  <CheckCircle2 className="h-7 w-7 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">3. Absolute Control</h3>
+                <p className="text-slate-600 leading-relaxed">Approve the transaction, or block it instantly. No more hunting for cancellation buttons on merchant websites.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature Highlights */}
+        <section id="features" className="py-24 bg-white">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-slate-900 mb-16 text-center">Everything you need to stop leaks</h2>
+            
+            <div className="space-y-20">
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div className="order-2 md:order-1 bg-slate-50 p-8 rounded-3xl border border-slate-100">
+                  <div className="space-y-4">
+                    <div className="h-2 w-1/3 bg-slate-200 rounded-full"></div>
+                    <div className="h-2 w-full bg-slate-200 rounded-full"></div>
+                    <div className="h-2 w-4/5 bg-slate-200 rounded-full"></div>
+                  </div>
+                </div>
+                <div className="order-1 md:order-2">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Unified Analytics Dashboard</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    Instantly see your total monthly burn rate and yearly projections. Categorize your spend into Streaming, Utilities, and Savings to know exactly where your money goes.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">Smart Permission Interception</h3>
+                  <p className="text-lg text-slate-600 leading-relaxed">
+                    By issuing distinct virtual cards for your merchants, SubSync intercepts charges before they happen. If you don't approve it, the merchant gets nothing.
+                  </p>
+                </div>
+                <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100 flex items-center justify-center">
+                   <ShieldCheck className="h-24 w-24 text-primary opacity-50" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="relative overflow-hidden bg-slate-900 py-24 text-center">
+          <div className="absolute inset-0 bg-primary/10" />
+          <div className="container relative z-10 mx-auto px-6 max-w-3xl">
+            <h2 className="font-heading text-4xl font-bold text-white mb-6">Ready to stop losing money?</h2>
+            <p className="text-lg text-slate-300 mb-10">Join thousands of users who have taken back control of their financial footprint.</p>
+            {mounted && user ? (
+              <Link href="/dashboard">
+                <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white border-0">
+                  Enter Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/signup">
+                <Button size="lg" className="h-14 px-8 text-lg rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white border-0">
+                  Create your free account
+                </Button>
+              </Link>
+            )}
           </div>
         </section>
 
@@ -131,7 +226,7 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 bg-white py-12">
         <div className="container mx-auto px-6 max-w-5xl flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <div className="font-heading font-semibold text-gray-900 mb-4 md:mb-0">SubSync</div>
-          <div>&copy; {new Date().getFullYear()} SubSync. All rights reserved.</div>
+          <div>&copy; 2026 SubSync. All rights reserved.</div>
         </div>
       </footer>
     </div>
