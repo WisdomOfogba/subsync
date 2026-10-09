@@ -27,7 +27,7 @@ export default function Settings() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     setMounted(true);
     const savedUserStr = localStorage.getItem("subsync_user");
     if (savedUserStr) {
@@ -36,9 +36,27 @@ export default function Settings() {
       setFormData({
         name: savedUser.name || "",
         telegramChatId: savedUser.telegramChatId || "",
-        alertPreference: "Email & Telegram", // sensible default
+        alertPreference: "Email & Telegram",
         baseCurrency: savedUser.baseCurrency || "NGN",
       });
+
+      // Fetch latest user state to sync DB updates (like Telegram linking or balance changes)
+      fetch(`/api/users/${savedUser.id}?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.user) {
+            setUser(data.user);
+            localStorage.setItem("subsync_user", JSON.stringify(data.user));
+            setFormData(prev => ({
+              ...prev,
+              telegramChatId: data.user.telegramChatId || prev.telegramChatId,
+              name: data.user.name || prev.name,
+              baseCurrency: data.user.baseCurrency || prev.baseCurrency,
+            }));
+          }
+        })
+        .catch(err => console.error("Failed to fetch latest user data", err));
+
     } else {
       router.push("/login");
     }
