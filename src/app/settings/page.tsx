@@ -155,18 +155,25 @@ export default function Settings() {
                   <Smartphone className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
                   <div className="space-y-3 w-full">
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-900">Connect Telegram Bot</h4>
+                      <h4 className="text-sm font-semibold text-gray-900">Connect Telegram</h4>
                       <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        To receive instant alerts on Telegram, start a chat with <strong>@subsy_nc_bot</strong>, type <code className="bg-gray-100 px-1 rounded">/start</code>, and paste your Chat ID below.
+                        Click the button below to open Telegram. Just press "Start" and your account will be linked instantly!
                       </p>
                     </div>
-                    <input 
-                      type="text"
-                      placeholder="e.g. 123456789"
-                      value={formData.telegramChatId}
-                      onChange={(e) => setFormData({...formData, telegramChatId: e.target.value})}
-                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
-                    />
+                    {user.telegramChatId ? (
+                      <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-semibold border border-green-100">
+                        ✓ Connected
+                      </div>
+                    ) : (
+                      <a 
+                        href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-10 items-center justify-center rounded-xl bg-[#229ED9] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
+                      >
+                        Connect via Telegram
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
