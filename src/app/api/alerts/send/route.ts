@@ -41,7 +41,7 @@ export async function POST(req: Request) {
                   <p style="margin: 0;"><strong>Time left:</strong> ${daysLeft} days</p>
                 </div>
                 <p>We are waiting for your permission to process this charge. If you no longer use this service, you can cancel it now to stop the leak.</p>
-                <a href="http://localhost:3000/dashboard" style="display: inline-block; background-color: #4ab8f9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Review in Dashboard</a>
+                <a href="https://sub-sync-ng.vercel.app/dashboard" style="display: inline-block; background-color: #4ab8f9; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Review in Dashboard</a>
               </div>
             `
           })

@@ -9,21 +9,48 @@ datasource db {
 }
 
 model User {
-  id                   String         @id @default(uuid())
-  email                String         @unique
-  password             String
-  name                 String?
-  telegramChatId       String?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  paystackBankName     String?
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  password           String
+  name               String?
+  telegramChatId     String?        
+  walletBalance      Float          @default(0)
   paystackCustomerCode String?
-  paystackDva          String?
-  walletBalance        Float          @default(0)
-  subscriptions        Subscription[]
-  Transaction          Transaction[]
-  VirtualCard          VirtualCard[]
-    baseCurrency       String         @default("NGN")
+  paystackDva        String?        // Dedicated Virtual Account Number
+  paystackBankName   String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  baseCurrency       String         @default("NGN")
+
+  subscriptions      Subscription[]
+  virtualCards       VirtualCard[]
+  transactions       Transaction[]
+}
+
+model VirtualCard {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  cardNumber String  @unique
+  expiry    String
+  cvv       String
+  balance   Float    @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Float
+  type        String   // "WALLET_FUND", "CARD_FUND", "MERCHANT_PAYMENT"
+  description String
+  status      String   @default("SUCCESS") // "SUCCESS", "FAILED"
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Subscription {

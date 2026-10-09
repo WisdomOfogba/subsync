@@ -228,7 +228,47 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* 9. FAQs */}
+        {/* 9. Pricing */}
+        <section id="pricing" className="bg-slate-900 py-24 text-white">
+          <div className="container mx-auto px-6 max-w-5xl text-center">
+            <h2 className="text-3xl font-heading font-bold mb-4">Simple, transparent pricing</h2>
+            <p className="text-slate-400 mb-12 max-w-xl mx-auto">Get a dedicated USD virtual card that shields you from FX fluctuations. Pay for Netflix in dollars using today's rate, safely.</p>
+            
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto text-left">
+              <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col">
+                <h3 className="text-xl font-bold mb-2">Basic</h3>
+                <p className="text-slate-400 text-sm mb-6">Perfect for managing local subscriptions.</p>
+                <div className="text-4xl font-bold mb-6">Free<span className="text-lg font-normal text-slate-400">/forever</span></div>
+                
+                <ul className="space-y-4 mb-8 flex-1">
+                  <li className="flex items-center text-slate-300 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> 1 Naira Virtual Card</li>
+                  <li className="flex items-center text-slate-300 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> Telegram alerts</li>
+                  <li className="flex items-center text-slate-300 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> Basic Analytics</li>
+                </ul>
+                <Button className="w-full bg-slate-700 hover:bg-slate-600 text-white" variant="outline">Get Started</Button>
+              </div>
+
+              <div className="bg-white rounded-3xl p-8 border-4 border-primary flex flex-col relative transform md:-translate-y-4 shadow-2xl shadow-primary/20">
+                <div className="absolute top-0 right-8 transform -translate-y-1/2">
+                  <span className="bg-primary text-white text-xs font-bold uppercase tracking-wider py-1 px-3 rounded-full">Most Popular</span>
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Pro</h3>
+                <p className="text-slate-500 text-sm mb-6">For the ultimate SaaS and streaming power user.</p>
+                <div className="text-4xl font-bold text-slate-900 mb-6">₦2,500<span className="text-lg font-normal text-slate-500">/month</span></div>
+                
+                <ul className="space-y-4 mb-8 flex-1">
+                  <li className="flex items-center text-slate-700 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> <strong className="ml-1 mr-1">Unlimited</strong> USD Virtual Cards</li>
+                  <li className="flex items-center text-slate-700 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> Lock-in FX rates for subscriptions</li>
+                  <li className="flex items-center text-slate-700 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> WhatsApp & Telegram AI Assistant</li>
+                  <li className="flex items-center text-slate-700 text-sm"><CheckCircle2 className="h-4 w-4 mr-3 text-primary" /> 1-Click Subscription Cancellation</li>
+                </ul>
+                <Button className="w-full shadow-lg shadow-primary/30">Start 14-Day Trial</Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 10. FAQs */}
         <section className="bg-slate-50 py-24 border-t border-slate-100">
           <div className="container mx-auto px-6 max-w-3xl">
             <h2 className="text-3xl font-heading font-bold text-slate-900 mb-12 text-center">Frequently Asked Questions</h2>

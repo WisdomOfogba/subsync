@@ -6,6 +6,10 @@ interface User {
   email: string;
   telegramChatId?: string;
   baseCurrency?: string;
+  walletBalance?: number;
+  paystackDva?: string;
+  paystackCustomerCode?: string;
+  paystackBankName?: string;
 }
 
 interface Subscription {
