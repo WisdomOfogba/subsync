@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Home, CreditCard, Activity, Settings, LogOut, BarChart3, Menu, ChevronDown, Monitor, Cpu, Home as HomeIcon, Zap, Music } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#ec4899', '#10b981'];
 
@@ -161,29 +160,21 @@ export default function AnalyticsPage() {
           {/* Donut Chart */}
           <div className="relative h-72 w-full flex justify-center items-center mb-12">
             {categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={90}
-                    outerRadius={120}
-                    paddingAngle={3}
-                    dataKey="value"
-                    stroke="none"
-                    cornerRadius={6}
-                  >
-                    {categoryData.map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => `${getCurrencySymbol(user.baseCurrency || 'NGN')}${value.toLocaleString()}`}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <div 
+                className="w-56 h-56 rounded-full relative flex justify-center items-center"
+                style={{
+                  background: `conic-gradient(${categoryData.reduce((acc: any, cat: any, i: number) => {
+                    const prevPercent = acc.totalPercent;
+                    const percent = (cat.value / totalSpend) * 100;
+                    acc.totalPercent += percent;
+                    acc.stops.push(`${COLORS[i % COLORS.length]} ${prevPercent}% ${acc.totalPercent}%`);
+                    return acc;
+                  }, { stops: [], totalPercent: 0 }).stops.join(', ')})`
+                }}
+              >
+                {/* Inner circle to make it a donut */}
+                <div className="w-40 h-40 bg-white rounded-full absolute"></div>
+              </div>
             ) : (
               <div className="w-48 h-48 rounded-full border-8 border-slate-100 flex items-center justify-center">
                 <p className="text-slate-400 font-medium">No data</p>
