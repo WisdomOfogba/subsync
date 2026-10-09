@@ -8,6 +8,7 @@ import {
   CreditCard, Plus, ChevronLeft, Calendar, 
   BellRing, Loader2, ArrowRight, ShieldCheck, Mail, Trash2
 } from "lucide-react";
+import { convertCurrency } from "@/lib/utils";
 
 const PRESET_SUBS = [
   "Netflix", "Spotify", "Apple Music", "DSTV", "MTN Router", "AWS", "ChatGPT Plus", "Cursor Pro"
@@ -17,11 +18,11 @@ export default function Dashboard() {
   const router = useRouter();
   const { 
     user, subscriptions, loading, 
-    setUser, setSubscriptions, addSubscription, updateSubscriptionStatus, deleteSubscription, setLoading 
+    setUser, setSubscriptions, addSubscription, updateSubscriptionStatus, deleteSubscription, markAsUsed, setLoading 
   } = useStore();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newSub, setNewSub] = useState({ name: "Netflix", customName: "", amount: "", date: "", category: "Streaming" });
+  const [newSub, setNewSub] = useState({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAlertTesting, setIsAlertTesting] = useState<string | null>(null); // holds the ID of the sub being tested
 
@@ -55,7 +56,8 @@ export default function Dashboard() {
 
   const activeSubs = subscriptions.filter(s => s.status === 'Active');
   const pendingSubs = subscriptions.filter(s => s.status === 'Pending Approval');
-  const totalMonthly = activeSubs.reduce((sum, sub) => sum + sub.amount, 0);
+  const userBaseCurrency = user?.baseCurrency || "NGN";
+  const totalMonthly = activeSubs.reduce((sum, sub) => sum + convertCurrency(sub.amount, sub.currency || "NGN", userBaseCurrency), 0);
   const totalYearly = totalMonthly * 12;
 
   const handleAddCommitment = async (e: React.FormEvent) => {
@@ -74,6 +76,7 @@ export default function Dashboard() {
           userId: user.id,
           name: finalName,
           amount: newSub.amount,
+          currency: newSub.currency,
           category: newSub.category,
           nextChargeDate: newSub.date
         })
@@ -82,7 +85,7 @@ export default function Dashboard() {
       if (data.success) {
         addSubscription(data.subscription);
         setIsModalOpen(false);
-        setNewSub({ name: "Netflix", customName: "", amount: "", date: "", category: "Streaming" });
+        setNewSub({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming" });
       }
     } catch (error) {
       console.error("Failed to add commitment");
@@ -116,6 +119,21 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error("Failed to delete");
+    }
+  };
+
+  const handleMarkUsed = async (id: string) => {
+    try {
+      const res = await fetch(`/api/subscriptions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_used' })
+      });
+      if (res.ok) {
+        markAsUsed(id);
+      }
+    } catch (error) {
+      console.error("Failed to mark as used");
     }
   };
 
@@ -269,19 +287,28 @@ export default function Dashboard() {
                   ) : (
                     subscriptions.map(sub => (
                       <tr key={sub.id} className="hover:bg-gray-50/30 transition-colors group">
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 flex items-center gap-2">
                           <span className="font-semibold text-gray-900">{sub.name}</span>
+                          {sub.lastInteractedAt && (Date.now() - new Date(sub.lastInteractedAt).getTime() > 90 * 24 * 60 * 60 * 1000) && (
+                            <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">Zombie?</span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
                             {sub.category}
                           </span>
                         </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">₦{sub.amount.toLocaleString()}</td>
+                        <td className="px-6 py-4 font-medium text-gray-900">
+                          {sub.currency === 'USD' ? '$' : sub.currency === 'EUR' ? '€' : sub.currency === 'GBP' ? '£' : '₦'}
+                          {sub.amount.toLocaleString()}
+                        </td>
                         <td className="px-6 py-4 text-gray-500">
                           {new Date(sub.nextChargeDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
                         <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                          {sub.lastInteractedAt && (Date.now() - new Date(sub.lastInteractedAt).getTime() > 90 * 24 * 60 * 60 * 1000) && (
+                            <button onClick={() => handleMarkUsed(sub.id)} className="text-xs text-blue-600 hover:underline mr-2">Mark Used</button>
+                          )}
                           <button 
                             onClick={() => handleTestAlert(sub)}
                             disabled={isAlertTesting === sub.id}
@@ -352,6 +379,20 @@ export default function Dashboard() {
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
                   placeholder="4500"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700">Currency</label>
+                <select 
+                  value={newSub.currency}
+                  onChange={(e) => setNewSub({...newSub, currency: e.target.value})}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white"
+                >
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
               </div>
 
               <div className="space-y-1.5">

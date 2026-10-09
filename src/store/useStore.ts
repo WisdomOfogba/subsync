@@ -5,15 +5,18 @@ interface User {
   name: string;
   email: string;
   telegramChatId?: string;
+  baseCurrency?: string;
 }
 
 interface Subscription {
   id: string;
   name: string;
   amount: number;
+  currency: string;
   category: string;
   nextChargeDate: string;
   status: string;
+  lastInteractedAt?: string;
 }
 
 interface SubSyncState {
@@ -25,6 +28,7 @@ interface SubSyncState {
   addSubscription: (sub: Subscription) => void;
   updateSubscriptionStatus: (id: string, status: string) => void;
   deleteSubscription: (id: string) => void;
+  markAsUsed: (id: string) => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -40,6 +44,11 @@ export const useStore = create<SubSyncState>((set) => ({
   })),
   deleteSubscription: (id) => set((state) => ({
     subscriptions: state.subscriptions.filter(sub => sub.id !== id)
+  })),
+  markAsUsed: (id) => set((state) => ({
+    subscriptions: state.subscriptions.map(sub => 
+      sub.id === id ? { ...sub, lastInteractedAt: new Date().toISOString() } : sub
+    )
   })),
   setLoading: (loading) => set({ loading }),
 }));

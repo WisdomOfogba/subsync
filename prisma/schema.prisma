@@ -3,35 +3,65 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model User {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  password       String
-  name           String?
-  telegramChatId String?        // For sending alerts
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-
-  subscriptions  Subscription[]
+  id                   String         @id @default(uuid())
+  email                String         @unique
+  password             String
+  name                 String?
+  telegramChatId       String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  paystackBankName     String?
+  paystackCustomerCode String?
+  paystackDva          String?
+  walletBalance        Float          @default(0)
+  subscriptions        Subscription[]
+  Transaction          Transaction[]
+  VirtualCard          VirtualCard[]
+    baseCurrency       String         @default("NGN")
 }
 
 model Subscription {
-  id             String      @id @default(uuid())
-  userId         String
-  name           String
-  amount         Float
-  currency       String      @default("NGN")
-  category       String
-  billingCycle   String      @default("MONTHLY") // MONTHLY, YEARLY
-  nextChargeDate DateTime
-  status         String      @default("ACTIVE") // ACTIVE, CANCELLED
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  id               String    @id @default(uuid())
+  userId           String
+  name             String
+  amount           Float
+  currency         String    @default("NGN")
+  category         String
+  billingCycle     String    @default("MONTHLY")
+  nextChargeDate   DateTime
+  status           String    @default("ACTIVE")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastInteractedAt DateTime? @default(now())
+  user             User      @relation(fields: [userId], references: [id])
+}
 
-  user           User        @relation(fields: [userId], references: [id])
+model Transaction {
+  id          String   @id
+  userId      String
+  amount      Float
+  type        String
+  description String
+  status      String   @default("SUCCESS")
+  createdAt   DateTime @default(now())
+  User        User     @relation(fields: [userId], references: [id])
+}
+
+model VirtualCard {
+  id         String   @id
+  userId     String
+  name       String
+  balance    Float    @default(0)
+  createdAt  DateTime @default(now())
+  cardNumber String   @unique
+  cvv        String
+  expiry     String
+  isActive   Boolean  @default(true)
+  User       User     @relation(fields: [userId], references: [id])
 }

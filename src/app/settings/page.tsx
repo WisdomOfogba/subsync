@@ -15,6 +15,7 @@ export default function Settings() {
     name: "",
     telegramChatId: "",
     alertPreference: "Email & Telegram",
+    baseCurrency: "NGN",
   });
   
   const [isSaving, setIsSaving] = useState(false);
@@ -30,6 +31,7 @@ export default function Settings() {
         name: savedUser.name || "",
         telegramChatId: savedUser.telegramChatId || "",
         alertPreference: "Email & Telegram", // sensible default
+        baseCurrency: savedUser.baseCurrency || "NGN",
       });
     } else {
       router.push("/login");
@@ -49,7 +51,8 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formData.name,
-          telegramChatId: formData.telegramChatId
+          telegramChatId: formData.telegramChatId,
+          baseCurrency: formData.baseCurrency
         })
       });
       
@@ -122,6 +125,20 @@ export default function Settings() {
                   readOnly
                   className="w-full rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-500 bg-gray-100 cursor-not-allowed"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700">Preferred Base Currency</label>
+                <select 
+                  value={formData.baseCurrency}
+                  onChange={(e) => setFormData({...formData, baseCurrency: e.target.value})}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
+                >
+                  <option value="NGN">NGN (₦)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">Your dashboard totals will be displayed in this currency.</p>
               </div>
             </div>
           </section>

@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { telegramChatId, name } = await req.json();
+    const { telegramChatId, name, baseCurrency } = await req.json();
     const { id } = await params;
 
     const updatedUser = await prisma.user.update({
@@ -11,6 +11,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       data: {
         ...(telegramChatId !== undefined && { telegramChatId }),
         ...(name !== undefined && { name }),
+        ...(baseCurrency !== undefined && { baseCurrency }),
       }
     });
 

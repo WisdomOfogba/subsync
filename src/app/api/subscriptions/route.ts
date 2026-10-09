@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { userId, name, amount, category, nextChargeDate } = data;
+    const { userId, name, amount, currency, category, nextChargeDate } = data;
 
     if (!userId || !name || !amount || !nextChargeDate) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
         userId,
         name,
         amount: parseFloat(amount),
+        currency: currency || "NGN",
         category: category || "General",
         nextChargeDate: new Date(nextChargeDate),
         status: "Pending Approval" // Defaults to pending to match the permission-first flow

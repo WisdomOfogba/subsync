@@ -3,16 +3,24 @@ import prisma from '@/lib/prisma';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { status } = await req.json();
+    const data = await req.json();
     const { id: subId } = await params;
 
-    if (!status) {
+    if (data.action === 'mark_used') {
+      const subscription = await prisma.subscription.update({
+        where: { id: subId },
+        data: { lastInteractedAt: new Date() }
+      });
+      return NextResponse.json({ success: true, subscription });
+    }
+
+    if (!data.status) {
       return NextResponse.json({ error: "Status is required" }, { status: 400 });
     }
 
     const subscription = await prisma.subscription.update({
       where: { id: subId },
-      data: { status: 'Active' }
+      data: { status: data.status } // Allow updating to the provided status, or default 'Active' if you prefer.
     });
 
     return NextResponse.json({ success: true, subscription });
