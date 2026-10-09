@@ -6,7 +6,7 @@ import { useStore } from "@/store/useStore";
 import { Button } from "@/components/ui/Button";
 import { 
   CreditCard, Plus, ArrowRightLeft, LayoutDashboard, Settings as SettingsIcon,
-  Activity, Menu, X, Loader2, Copy, Check
+  Activity, Menu, X, BarChart3, Loader2, Copy, Check
 } from "lucide-react";
 import Link from "next/link";
 

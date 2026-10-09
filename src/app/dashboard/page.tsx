@@ -6,7 +6,7 @@ import { useStore } from "@/store/useStore";
 import { Button } from "@/components/ui/Button";
 import { 
   Plus, Trash2, Loader2, Mail, CreditCard, LayoutDashboard, 
-  Settings as SettingsIcon, Bell, Search, Activity, Menu, X
+  Settings as SettingsIcon, Bell, Search, Activity, Menu, X, BarChart3
 } from "lucide-react";
 import { convertCurrency } from "@/lib/utils";
 import Link from "next/link";

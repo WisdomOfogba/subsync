@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { 
   CreditCard, LayoutDashboard, Settings as SettingsIcon,
-  Activity, Menu, X, Loader2, ArrowDownLeft, ArrowUpRight, ShoppingBag
+  Activity, Menu, X, BarChart3, Loader2, ArrowDownLeft, ArrowUpRight, ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
 
