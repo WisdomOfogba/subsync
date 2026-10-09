@@ -23,3 +23,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) return NextResponse.json({ success: false }, { status: 404 });
+    
+    return NextResponse.json({
+      success: true,
+      user: { id: user.id, name: user.name, email: user.email, telegramChatId: user.telegramChatId }
+    });
+  } catch (error: any) {
+    return NextResponse.json({ success: false }, { status: 500 });
+  }
+}

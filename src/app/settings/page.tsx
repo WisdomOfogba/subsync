@@ -42,6 +42,29 @@ export default function Settings() {
     }
   }, [router, setUser]);
 
+  // Poll for telegram connection when modal is open
+  useEffect(() => {
+    if (!showQRModal || !user) return;
+    
+    const intervalId = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/users/${user.id}`);
+        const data = await res.json();
+        if (data.success && data.user.telegramChatId) {
+          // Success! They connected.
+          setUser(data.user);
+          localStorage.setItem("subsync_user", JSON.stringify(data.user));
+          setFormData(prev => ({ ...prev, telegramChatId: data.user.telegramChatId }));
+          setShowQRModal(false); // Close the modal automatically
+        }
+      } catch (error) {
+        console.error("Polling error", error);
+      }
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [showQRModal, user, setUser]);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
