@@ -29,6 +29,15 @@ export async function POST(req: Request) {
       prisma.virtualCard.update({
         where: { id: cardId },
         data: { balance: card.balance + amount }
+      }),
+      prisma.transaction.create({
+        data: {
+          userId,
+          amount,
+          type: "CARD_FUND",
+          description: `Funded ${card.name}`,
+          status: "SUCCESS"
+        }
       })
     ]);
 

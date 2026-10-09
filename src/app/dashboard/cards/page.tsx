@@ -41,6 +41,11 @@ export default function CardsPage() {
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // OTP Reveal State
+  const [revealedCards, setRevealedCards] = useState<Record<string, boolean>>({});
+  const [otpCardId, setOtpCardId] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
+
   useEffect(() => {
     setMounted(true);
     const savedUserStr = localStorage.getItem("subsync_user");
@@ -164,6 +169,22 @@ export default function CardsPage() {
     return num.replace(/(\d{4})/g, '$1 ').trim();
   };
 
+  const maskCardNumber = (num: string) => {
+    return `•••• •••• •••• ${num.slice(-4)}`;
+  };
+
+  const handleVerifyOtp = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp === "1234" && otpCardId) {
+      setRevealedCards({ ...revealedCards, [otpCardId]: true });
+      setOtp("");
+      const dialog = document.getElementById('otp_modal') as HTMLDialogElement;
+      dialog?.close();
+    } else {
+      alert("Invalid OTP! Try 1234.");
+    }
+  };
+
   if (!mounted || !user) return null;
 
   return (
@@ -197,9 +218,9 @@ export default function CardsPage() {
           <Link href="/dashboard/cards" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
             <CreditCard className="h-5 w-5" /> Virtual Cards
           </Link>
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+          <Link href="/dashboard/transactions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
             <Activity className="h-5 w-5" /> Transactions
-          </a>
+          </Link>
           
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
           <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
@@ -271,62 +292,92 @@ export default function CardsPage() {
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-6">
-                  {cards.map(card => (
-                    <div key={card.id} className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl shadow-slate-200 relative overflow-hidden">
-                      <div className="absolute -right-12 -top-12 h-40 w-40 bg-white/5 rounded-full blur-2xl"></div>
-                      <div className="absolute -left-12 -bottom-12 h-40 w-40 bg-primary/20 rounded-full blur-2xl"></div>
-                      
-                      <div className="flex justify-between items-start relative z-10 mb-8">
-                        <div>
-                          <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{card.name}</p>
-                          <div className="text-2xl font-bold">₦{card.balance.toLocaleString()}</div>
-                        </div>
-                        <div className="h-8 w-12 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm">
-                          <span className="font-bold italic text-sm">VISA</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4 relative z-10">
-                        <div className="flex items-center justify-between group">
-                          <div className="font-mono text-lg tracking-widest">{formatCardNumber(card.cardNumber)}</div>
-                          <button onClick={() => copyToClipboard(card.cardNumber, card.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-white/10 rounded-md">
-                            {copiedId === card.id ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-slate-300" />}
-                          </button>
+                  {cards.map(card => {
+                    const isRevealed = revealedCards[card.id];
+                    return (
+                      <div key={card.id} className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl shadow-slate-200 relative overflow-hidden flex flex-col justify-between">
+                        <div className="absolute -right-12 -top-12 h-40 w-40 bg-white/5 rounded-full blur-2xl"></div>
+                        <div className="absolute -left-12 -bottom-12 h-40 w-40 bg-primary/20 rounded-full blur-2xl"></div>
+                        
+                        <div className="flex justify-between items-start relative z-10 mb-8">
+                          <div>
+                            <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">{card.name}</p>
+                            <div className="text-2xl font-bold">₦{card.balance.toLocaleString()}</div>
+                          </div>
+                          <div className="h-8 w-12 bg-white/20 rounded-md flex items-center justify-center backdrop-blur-sm">
+                            <span className="font-bold italic text-sm">VISA</span>
+                          </div>
                         </div>
                         
-                        <div className="flex justify-between items-end">
-                          <div className="flex gap-6">
-                            <div>
-                              <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">Valid Thru</p>
-                              <p className="font-mono text-sm">{card.expiry}</p>
+                        <div className="space-y-4 relative z-10">
+                          <div className="flex items-center justify-between group">
+                            <div className="font-mono text-lg tracking-widest">
+                              {isRevealed ? formatCardNumber(card.cardNumber) : maskCardNumber(card.cardNumber)}
                             </div>
-                            <div>
-                              <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">CVV</p>
-                              <p className="font-mono text-sm">{card.cvv}</p>
-                            </div>
+                            {isRevealed && (
+                              <button onClick={() => copyToClipboard(card.cardNumber, card.id)} className="p-1.5 hover:bg-white/10 rounded-md transition-colors">
+                                {copiedId === card.id ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-slate-300" />}
+                              </button>
+                            )}
                           </div>
                           
-                          <Button 
-                            onClick={() => {
-                              setSelectedCardId(card.id);
-                              (document.getElementById('fund_card_modal') as HTMLDialogElement)?.showModal();
-                            }}
-                            variant="secondary" 
-                            className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-0"
-                          >
-                            Fund Card
-                          </Button>
+                          <div className="flex justify-between items-end">
+                            <div className="flex gap-6">
+                              <div>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">Valid Thru</p>
+                                <p className="font-mono text-sm">{isRevealed ? card.expiry : "••/••"}</p>
+                              </div>
+                              <div>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">CVV</p>
+                                <p className="font-mono text-sm">{isRevealed ? card.cvv : "•••"}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              {!isRevealed ? (
+                                <Button 
+                                  onClick={() => {
+                                    setOtpCardId(card.id);
+                                    (document.getElementById('otp_modal') as HTMLDialogElement)?.showModal();
+                                  }}
+                                  variant="secondary" 
+                                  className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-0"
+                                >
+                                  Reveal
+                                </Button>
+                              ) : (
+                                <Button 
+                                  onClick={() => setRevealedCards({ ...revealedCards, [card.id]: false })}
+                                  variant="secondary" 
+                                  className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-0"
+                                >
+                                  Hide
+                                </Button>
+                              )}
+                              
+                              <Button 
+                                onClick={() => {
+                                  setSelectedCardId(card.id);
+                                  (document.getElementById('fund_card_modal') as HTMLDialogElement)?.showModal();
+                                }}
+                                variant="secondary" 
+                                className="h-8 text-xs bg-white/10 hover:bg-white/20 text-white border-0"
+                              >
+                                Fund
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </section>
             
             {cards.length > 0 && (
               <div className="text-center mt-12">
-                <Link href="/simulation" className="inline-flex items-center text-sm font-medium text-primary hover:text-blue-700 transition-colors">
+                <Link href="/simulation" target="_blank" className="inline-flex items-center text-sm font-medium text-primary hover:text-blue-700 transition-colors">
                   Go to Checkout Simulation Page &rarr;
                 </Link>
               </div>
@@ -390,6 +441,35 @@ export default function CardsPage() {
             </Button>
             <Button type="submit" disabled={isFunding} className="flex-1">
               {isFunding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Transfer Funds"}
+            </Button>
+          </div>
+        </form>
+      </dialog>
+
+      {/* OTP Modal */}
+      <dialog id="otp_modal" className="modal backdrop:bg-slate-900/50 backdrop:backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-slate-100 max-w-xs w-full mx-auto mt-32">
+        <h3 className="font-bold text-lg text-slate-900 mb-1">Security Check</h3>
+        <p className="text-sm text-slate-500 mb-6">Enter your 4-digit PIN (Try 1234) to reveal sensitive card details.</p>
+        
+        <form onSubmit={handleVerifyOtp} className="space-y-4">
+          <div>
+            <input 
+              type="password" 
+              maxLength={4}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+              placeholder="••••"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-center tracking-widest text-xl font-bold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              required
+            />
+          </div>
+          
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={() => {setOtp(""); (document.getElementById('otp_modal') as HTMLDialogElement)?.close()}} className="flex-1">
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1">
+              Verify
             </Button>
           </div>
         </form>

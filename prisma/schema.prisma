@@ -23,6 +23,7 @@ model User {
 
   subscriptions      Subscription[]
   virtualCards       VirtualCard[]
+  transactions       Transaction[]
 }
 
 model VirtualCard {
@@ -33,9 +34,22 @@ model VirtualCard {
   expiry    String
   cvv       String
   balance   Float    @default(0)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  amount      Float
+  type        String   // "WALLET_FUND", "CARD_FUND", "MERCHANT_PAYMENT"
+  description String
+  status      String   @default("SUCCESS") // "SUCCESS", "FAILED"
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Subscription {

@@ -17,6 +17,16 @@ export async function POST(req: Request) {
       data: { walletBalance: user.walletBalance + amount }
     });
 
+    await prisma.transaction.create({
+      data: {
+        userId,
+        amount,
+        type: "WALLET_FUND",
+        description: "Paystack Topup",
+        status: "SUCCESS"
+      }
+    });
+
     return NextResponse.json({ success: true, balance: updatedUser.walletBalance });
   } catch (error) {
     console.error(error);

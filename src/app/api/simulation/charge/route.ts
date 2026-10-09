@@ -23,12 +23,22 @@ export async function POST(req: Request) {
     }
 
     // Deduct balance from card
-    await prisma.virtualCard.update({
-      where: { id: card.id },
-      data: { balance: card.balance - amount }
-    });
+    await prisma.$transaction([
+      prisma.virtualCard.update({
+        where: { id: card.id },
+        data: { balance: card.balance - amount }
+      }),
+      prisma.transaction.create({
+        data: {
+          userId: card.userId,
+          amount,
+          type: "MERCHANT_PAYMENT",
+          description: `Payment to ${merchant}`,
+          status: "SUCCESS"
+        }
+      })
+    ]);
 
-    // In a real app, you would log a Transaction record here.
     return NextResponse.json({ success: true, message: `Successfully charged ${amount} for ${merchant}` });
 
   } catch (error) {
