@@ -42,6 +42,23 @@ export async function POST(req: Request) {
       }
     });
 
+    // Also create a placeholder subscription for this card so it appears in active commitments
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+    await prisma.subscription.create({
+      data: {
+        userId,
+        name: `${name} (Virtual Card)`,
+        amount: 0,
+        currency: "USD",
+        category: "Software",
+        nextChargeDate: nextMonth,
+        status: "ACTIVE",
+        paymentMethod: "VIRTUAL_CARD"
+      }
+    });
+
     return NextResponse.json({ success: true, card });
   } catch (error) {
     console.error(error);

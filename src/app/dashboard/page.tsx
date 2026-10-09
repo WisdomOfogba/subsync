@@ -301,7 +301,12 @@ export default function Dashboard() {
                     subscriptions.map(sub => (
                       <tr key={sub.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-6 py-4">
-                          <span className="font-medium text-slate-900">{sub.name}</span>
+                          <span className="font-medium text-slate-900 mr-2">{sub.name}</span>
+                          {sub.paymentMethod === 'VIRTUAL_CARD' && (
+                            <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-0.5 text-[10px] font-bold text-blue-700 mr-2">
+                              💳 CARD
+                            </span>
+                          )}
                           {sub.lastInteractedAt && (Date.now() - new Date(sub.lastInteractedAt).getTime() > 90 * 24 * 60 * 60 * 1000) && (
                             <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-medium text-red-700">Zombie?</span>
                           )}

@@ -63,32 +63,9 @@ model Subscription {
   billingCycle     String    @default("MONTHLY")
   nextChargeDate   DateTime
   status           String    @default("ACTIVE")
+  paymentMethod    String    @default("DIRECT_DEBIT") // "DIRECT_DEBIT", "VIRTUAL_CARD"
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastInteractedAt DateTime? @default(now())
   user             User      @relation(fields: [userId], references: [id])
-}
-
-model Transaction {
-  id          String   @id
-  userId      String
-  amount      Float
-  type        String
-  description String
-  status      String   @default("SUCCESS")
-  createdAt   DateTime @default(now())
-  User        User     @relation(fields: [userId], references: [id])
-}
-
-model VirtualCard {
-  id         String   @id
-  userId     String
-  name       String
-  balance    Float    @default(0)
-  createdAt  DateTime @default(now())
-  cardNumber String   @unique
-  cvv        String
-  expiry     String
-  isActive   Boolean  @default(true)
-  User       User     @relation(fields: [userId], references: [id])
 }

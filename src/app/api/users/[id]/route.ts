@@ -25,6 +25,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;

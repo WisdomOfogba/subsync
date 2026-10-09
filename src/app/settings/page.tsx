@@ -50,7 +50,7 @@ export default function Settings() {
     
     const intervalId = setInterval(async () => {
       try {
-        const res = await fetch(`/api/users/${user.id}`);
+        const res = await fetch(`/api/users/${user.id}?t=${Date.now()}`);
         const data = await res.json();
         if (data.success && data.user.telegramChatId) {
           // Success! They connected.
