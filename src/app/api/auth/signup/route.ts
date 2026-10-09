@@ -29,9 +29,11 @@ export async function POST(req: Request) {
       }
     });
 
+    const { password: _, ...userWithoutPassword } = user;
+
     return NextResponse.json({ 
       success: true, 
-      user: { id: user.id, name: user.name, email: user.email } 
+      user: userWithoutPassword 
     });
   } catch (error: any) {
     console.error("Signup Error:", error);

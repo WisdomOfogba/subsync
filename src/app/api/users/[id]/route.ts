@@ -15,9 +15,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       }
     });
 
+    const { password, ...userWithoutPassword } = updatedUser;
+
     return NextResponse.json({ 
       success: true, 
-      user: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, telegramChatId: updatedUser.telegramChatId } 
+      user: userWithoutPassword 
     });
   } catch (error: any) {
     console.error("Update User Error:", error);
@@ -34,9 +36,11 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) return NextResponse.json({ success: false }, { status: 404 });
     
+    const { password, ...userWithoutPassword } = user;
+
     return NextResponse.json({
       success: true,
-      user: { id: user.id, name: user.name, email: user.email, telegramChatId: user.telegramChatId }
+      user: userWithoutPassword
     });
   } catch (error: any) {
     return NextResponse.json({ success: false }, { status: 500 });
