@@ -9,15 +9,31 @@ datasource db {
 }
 
 model User {
-  id             String         @id @default(uuid())
-  email          String         @unique
-  password       String
-  name           String?
-  telegramChatId String?        // For sending alerts
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                 String         @id @default(uuid())
+  email              String         @unique
+  password           String
+  name               String?
+  telegramChatId     String?        
+  walletBalance      Float          @default(0)
+  paystackCustomerCode String?
+  paystackDva        String?        // Dedicated Virtual Account Number
+  paystackBankName   String?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
-  subscriptions  Subscription[]
+  subscriptions      Subscription[]
+  virtualCards       VirtualCard[]
+}
+
+model VirtualCard {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  last4     String
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Subscription {

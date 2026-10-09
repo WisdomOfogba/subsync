@@ -247,9 +247,9 @@ export default function Dashboard() {
             
             <div className="bg-gradient-to-br from-primary to-blue-600 p-6 rounded-2xl border border-blue-500 shadow-md shadow-blue-500/20 text-white flex flex-col justify-between relative overflow-hidden">
               <div className="absolute -right-6 -top-6 h-24 w-24 bg-white/10 rounded-full blur-xl"></div>
-              <p className="text-sm font-medium text-blue-100 relative z-10">AI Receipt Scanner</p>
+              <p className="text-sm font-medium text-blue-100 relative z-10">AI Financial Assistant</p>
               <div className="mt-2 relative z-10">
-                <p className="text-sm leading-tight text-white mb-3">Send a screenshot of a receipt to our Telegram bot, and our AI will automatically track it.</p>
+                <p className="text-sm leading-tight text-white mb-3">Ask your Telegram bot questions like "When is Netflix due?" or "How many subs do I have?"</p>
                 <Link href="/settings" className="text-xs font-semibold bg-white text-primary px-3 py-1.5 rounded-full hover:bg-blue-50 transition-colors inline-block">
                   Connect Bot &rarr;
                 </Link>
