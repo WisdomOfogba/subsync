@@ -25,10 +25,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-export const dynamic = 'force-dynamic';
+
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { searchParams } = new URL(req.url); // Opt out of caching
     const { id } = await params;
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) return NextResponse.json({ success: false }, { status: 404 });
