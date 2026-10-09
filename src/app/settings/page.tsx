@@ -157,7 +157,7 @@ export default function Settings() {
                     <div>
                       <h4 className="text-sm font-semibold text-gray-900">Connect Telegram</h4>
                       <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        Click the button below to open Telegram. Just press "Start" and your account will be linked instantly!
+                        Click the button below or scan the QR code with your phone. Just press "Start" and your account will be linked instantly!
                       </p>
                     </div>
                     {user.telegramChatId ? (
@@ -165,14 +165,24 @@ export default function Settings() {
                         ✓ Connected
                       </div>
                     ) : (
-                      <a 
-                        href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex h-10 items-center justify-center rounded-xl bg-[#229ED9] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
-                      >
-                        Connect via Telegram
-                      </a>
+                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                        <a 
+                          href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#229ED9] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
+                        >
+                          Connect via Telegram
+                        </a>
+                        <div className="flex flex-col items-center gap-2">
+                          <span className="text-xs text-gray-400 font-medium">OR SCAN TO CONNECT</span>
+                          <img 
+                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
+                            alt="Scan to connect Telegram" 
+                            className="h-24 w-24 rounded-lg border border-gray-200 shadow-sm"
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
