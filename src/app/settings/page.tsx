@@ -23,6 +23,7 @@ export default function Settings() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
+  const [showQRModal, setShowQRModal] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -244,16 +245,13 @@ export default function Settings() {
                           >
                             Connect App
                           </a>
-                          <div className="relative group cursor-help">
-                            <span className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors">OR SCAN QR</span>
-                            <div className="absolute bottom-full right-0 mb-2 hidden group-hover:block z-50">
-                              <img 
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
-                                alt="Scan to connect Telegram" 
-                                className="h-32 w-32 rounded-xl border border-slate-200 shadow-xl bg-white p-1"
-                              />
-                            </div>
-                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => setShowQRModal(true)}
+                            className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
+                          >
+                            OR SCAN QR
+                          </button>
                         </div>
                       )}
                     </div>
@@ -302,6 +300,28 @@ export default function Settings() {
           </div>
         </div>
       </main>
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
+            <h2 className="text-xl font-heading font-bold text-slate-900 mb-2">Connect Telegram</h2>
+            <p className="text-sm text-slate-500 mb-6">Scan this QR code with your phone's camera to instantly link your account.</p>
+            
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 inline-block mb-6">
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
+                alt="Scan to connect Telegram" 
+                className="h-48 w-48 mx-auto mix-blend-multiply"
+              />
+            </div>
+            
+            <Button onClick={() => setShowQRModal(false)} variant="outline" className="w-full rounded-lg h-11">
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
