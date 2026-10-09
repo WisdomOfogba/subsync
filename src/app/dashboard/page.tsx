@@ -90,6 +90,12 @@ export default function Dashboard() {
     if (!user?.email) return alert("User email is missing");
     setIsAlertTesting(sub.id);
     try {
+      const nextDate = new Date(sub.nextChargeDate);
+      const today = new Date();
+      const diffTime = nextDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const daysLeft = diffDays > 0 ? diffDays : 0;
+
       const res = await fetch('/api/alerts/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -100,15 +106,12 @@ export default function Dashboard() {
           alertPreference: user.telegramChatId ? "Email & Telegram" : "Email Only",
           subscriptionName: sub.name,
           amountDue: sub.amount,
-          daysLeft: 3
+          daysLeft: daysLeft
         })
       });
       const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-      } else {
-        alert("Failed: " + data.error);
-      }
+      if (res.ok) alert(data.message);
+      else alert("Failed: " + data.error);
     } catch (error) {
       alert("Network error while sending alert.");
     } finally {
@@ -116,9 +119,16 @@ export default function Dashboard() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("subsync_user");
+    setUser(null);
+    router.push("/login");
+  };
+
   if (!mounted || !user) return null;
 
   const totalMonthly = subscriptions.reduce((acc, sub) => acc + sub.amount, 0);
+  const totalYearly = totalMonthly * 12;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -148,7 +158,11 @@ export default function Dashboard() {
           </Link>
         </nav>
         
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 flex flex-col gap-3">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors w-full text-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log out
+          </button>
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0">
               <span className="text-sm font-bold text-blue-700">{user?.name?.charAt(0) || 'U'}</span>
@@ -199,6 +213,9 @@ export default function Dashboard() {
                 <span className="text-3xl font-bold text-slate-900">₦{totalMonthly.toLocaleString()}</span>
                 <span className="text-xs font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded">Active</span>
               </div>
+              <p className="text-xs text-slate-400 mt-2 border-t border-slate-50 pt-2">
+                Projected Yearly: <strong className="text-slate-600">₦{totalYearly.toLocaleString()}</strong>
+              </p>
             </div>
             
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">

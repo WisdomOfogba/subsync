@@ -73,6 +73,12 @@ export default function Settings() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("subsync_user");
+    setUser(null);
+    router.push("/login");
+  };
+
   if (!mounted || !user) return null;
 
   return (
@@ -103,7 +109,11 @@ export default function Settings() {
           </Link>
         </nav>
         
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 flex flex-col gap-3">
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors w-full text-left">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Log out
+          </button>
           <div className="flex items-center gap-3">
             <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0">
               <span className="text-sm font-bold text-blue-700">{user?.name?.charAt(0) || 'U'}</span>

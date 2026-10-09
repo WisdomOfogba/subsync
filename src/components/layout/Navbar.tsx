@@ -18,11 +18,6 @@ export default function Navbar() {
     }
   }, [user, setUser]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("subsync_user");
-    setUser(null);
-  };
-
   return (
     <nav className="fixed top-0 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
@@ -39,14 +34,9 @@ export default function Navbar() {
 
         <div className="flex items-center gap-4">
           {mounted && user ? (
-            <>
-              <Link href="/dashboard">
-                <Button variant="outline" className="rounded-full shadow-sm">Dashboard</Button>
-              </Link>
-              <Button onClick={handleLogout} variant="ghost" className="rounded-full text-gray-500 hover:text-gray-900">
-                Log out
-              </Button>
-            </>
+            <Link href="/dashboard">
+              <Button variant="outline" className="rounded-full shadow-sm">Dashboard</Button>
+            </Link>
           ) : (
             <>
               <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:block">Log in</Link>
