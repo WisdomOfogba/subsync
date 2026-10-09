@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/useStore";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, Bell, Smartphone, Loader2, Save, User as UserIcon } from "lucide-react";
+import { 
+  Loader2, Save, User as UserIcon, Bell, Smartphone, 
+  LayoutDashboard, CreditCard, Activity, Settings as SettingsIcon, Search
+} from "lucide-react";
+import Link from "next/link";
 
 export default function Settings() {
   const router = useRouter();
@@ -72,136 +76,180 @@ export default function Settings() {
   if (!mounted || !user) return null;
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      {/* Sleek Minimalist Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/dashboard")} className="text-gray-400 hover:text-gray-900 transition-colors">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <div className="flex items-center gap-3">
-              <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-8 w-8 rounded-md object-contain" />
-              <div className="font-heading font-semibold tracking-tight text-gray-900 text-lg hidden sm:block">Settings</div>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      
+      {/* SaaS Sidebar */}
+      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex">
+        <div className="h-16 flex items-center px-6 border-b border-slate-100">
+          <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
+          <span className="font-heading font-bold text-slate-900 text-lg tracking-tight">SubSync</span>
+        </div>
+        
+        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Overview</div>
+          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+            <LayoutDashboard className="h-5 w-5" /> Dashboard
+          </Link>
+          <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+            <CreditCard className="h-5 w-5" /> Virtual Cards <span className="ml-auto text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Soon</span>
+          </a>
+          <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+            <Activity className="h-5 w-5" /> Transactions
+          </a>
+          
+          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
+          <Link href="/settings" className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
+            <SettingsIcon className="h-5 w-5" /> Profile & Alerts
+          </Link>
+        </nav>
+        
+        <div className="p-4 border-t border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0">
+              <span className="text-sm font-bold text-blue-700">{user?.name?.charAt(0) || 'U'}</span>
+            </div>
+            <div className="overflow-hidden">
+              <p className="text-sm font-medium text-slate-900 truncate">{user?.name}</p>
+              <p className="text-xs text-slate-500 truncate">{user?.email}</p>
             </div>
           </div>
         </div>
-      </header>
+      </aside>
 
-      <main className="container mx-auto max-w-3xl flex-grow p-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-gray-900">Profile & Preferences</h1>
-          <p className="text-sm text-gray-500 mt-2">Manage your account details and notification preferences.</p>
-        </div>
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
+          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-64 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all opacity-50">
+            <Search className="h-4 w-4 text-slate-400 mr-2" />
+            <input type="text" placeholder="Search..." disabled className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400" />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button className="relative text-slate-400 hover:text-slate-600 transition-colors">
+              <Bell className="h-5 w-5" />
+            </button>
+          </div>
+        </header>
 
-        <form onSubmit={handleSave} className="space-y-8">
-          {/* Profile Section */}
-          <section className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <UserIcon className="h-5 w-5 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900">Personal Info</h2>
+        {/* Settings Content */}
+        <div className="flex-1 overflow-y-auto p-8">
+          <div className="max-w-3xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-heading font-bold text-slate-900">Profile & Preferences</h1>
+              <p className="text-sm text-slate-500 mt-1">Manage your account details and notification channels.</p>
             </div>
-            
-            <div className="space-y-5 max-w-md">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Full Name</label>
-                <input 
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-gray-50/50 focus:bg-white"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Email Address (Read-only)</label>
-                <input 
-                  type="email"
-                  value={user.email}
-                  readOnly
-                  className="w-full rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-500 bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-            </div>
-          </section>
 
-          {/* Alerts & Notifications */}
-          <section className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                <Bell className="h-5 w-5 text-orange-500" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900">Notification Preferences</h2>
-            </div>
-            
-            <div className="space-y-6 max-w-md">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Where should we send alerts?</label>
-                <select 
-                  value={formData.alertPreference}
-                  onChange={(e) => setFormData({...formData, alertPreference: e.target.value})}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
-                >
-                  <option>Email Only (Default)</option>
-                  <option>Telegram Only</option>
-                  <option>Email & Telegram</option>
-                </select>
-                <p className="text-xs text-gray-400 mt-1">We alert you 3 days before any deduction.</p>
-              </div>
-
-              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                <div className="flex items-start gap-4">
-                  <Smartphone className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
-                  <div className="space-y-3 w-full">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-900">Connect Telegram</h4>
-                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                        Click the button below or scan the QR code with your phone. Just press "Start" and your account will be linked instantly!
-                      </p>
-                    </div>
-                    {user.telegramChatId ? (
-                      <div className="inline-flex items-center px-3 py-1.5 rounded-full bg-green-50 text-green-700 text-sm font-semibold border border-green-100">
-                        ✓ Connected
-                      </div>
-                    ) : (
-                      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                        <a 
-                          href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex h-10 items-center justify-center rounded-xl bg-[#229ED9] px-6 text-sm font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
-                        >
-                          Connect via Telegram
-                        </a>
-                        <div className="flex flex-col items-center gap-2">
-                          <span className="text-xs text-gray-400 font-medium">OR SCAN TO CONNECT</span>
-                          <img 
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
-                            alt="Scan to connect Telegram" 
-                            className="h-24 w-24 rounded-lg border border-gray-200 shadow-sm"
-                          />
-                        </div>
-                      </div>
-                    )}
+            <form onSubmit={handleSave} className="space-y-8">
+              {/* Profile Section */}
+              <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <UserIcon className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-900">Personal Info</h2>
+                </div>
+                
+                <div className="space-y-5 max-w-md">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700">Full Name</label>
+                    <input 
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700">Email Address</label>
+                    <input 
+                      type="email"
+                      value={user.email}
+                      readOnly
+                      className="w-full rounded-lg border border-slate-100 px-3 py-2.5 text-sm text-slate-500 bg-slate-50 cursor-not-allowed"
+                    />
                   </div>
                 </div>
-              </div>
-            </div>
-          </section>
+              </section>
 
-          <div className="flex items-center gap-4 pt-2">
-            <Button type="submit" className="h-12 px-8 rounded-xl shadow-lg shadow-primary/25" disabled={isSaving}>
-              {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-              Save Preferences
-            </Button>
-            {saveMessage && (
-              <span className="text-sm font-medium text-green-600 animate-in fade-in slide-in-from-left-2">
-                {saveMessage}
-              </span>
-            )}
+              {/* Alerts & Notifications */}
+              <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+                <div className="flex items-center gap-3 mb-6 border-b border-slate-100 pb-4">
+                  <div className="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-slate-900">Notification Channels</h2>
+                </div>
+                
+                <div className="space-y-6 max-w-md">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700">Where should we send alerts?</label>
+                    <select 
+                      value={formData.alertPreference}
+                      onChange={(e) => setFormData({...formData, alertPreference: e.target.value})}
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
+                    >
+                      <option>Email Only (Default)</option>
+                      <option>Telegram Only</option>
+                      <option>Email & Telegram</option>
+                    </select>
+                  </div>
+
+                  <div className="p-5 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="flex items-start gap-4">
+                      <Smartphone className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
+                      <div className="space-y-4 w-full">
+                        <div>
+                          <h4 className="text-sm font-semibold text-slate-900">Connect Telegram Bot</h4>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                            Click the button below or scan the QR code with your phone to instantly link your account.
+                          </p>
+                        </div>
+                        {user.telegramChatId ? (
+                          <div className="inline-flex items-center px-3 py-1.5 rounded-md bg-green-50 text-green-700 text-xs font-semibold border border-green-100">
+                            ✓ Connected
+                          </div>
+                        ) : (
+                          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                            <a 
+                              href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex h-9 items-center justify-center rounded-lg bg-[#229ED9] px-4 text-sm font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
+                            >
+                              Connect via Telegram
+                            </a>
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-[10px] text-slate-400 font-bold tracking-wider">OR SCAN</span>
+                              <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
+                                alt="Scan to connect Telegram" 
+                                className="h-24 w-24 rounded border border-slate-200 shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <div className="flex items-center gap-4 pt-2">
+                <Button type="submit" className="h-10 px-6 rounded-lg shadow-sm" disabled={isSaving}>
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save Preferences
+                </Button>
+                {saveMessage && (
+                  <span className="text-sm font-medium text-green-600 animate-in fade-in slide-in-from-left-2">
+                    {saveMessage}
+                  </span>
+                )}
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </main>
     </div>
   );
