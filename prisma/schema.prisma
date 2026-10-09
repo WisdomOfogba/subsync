@@ -29,7 +29,9 @@ model VirtualCard {
   id        String   @id @default(uuid())
   userId    String
   name      String
-  last4     String
+  cardNumber String  @unique
+  expiry    String
+  cvv       String
   balance   Float    @default(0)
   createdAt DateTime @default(now())
 

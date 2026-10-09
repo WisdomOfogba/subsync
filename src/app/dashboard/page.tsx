@@ -159,9 +159,9 @@ export default function Dashboard() {
           <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
             <LayoutDashboard className="h-5 w-5" /> Dashboard
           </Link>
-          <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <CreditCard className="h-5 w-5" /> Virtual Cards <span className="ml-auto text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Soon</span>
-          </a>
+          <Link href="/dashboard/cards" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+            <CreditCard className="h-5 w-5" /> Virtual Cards
+          </Link>
           <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
             <Activity className="h-5 w-5" /> Transactions
           </a>
