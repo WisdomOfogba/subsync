@@ -6,7 +6,7 @@ import { useStore } from "@/store/useStore";
 import { Button } from "@/components/ui/Button";
 import { 
   Loader2, Save, User as UserIcon, Bell, Smartphone, 
-  LayoutDashboard, CreditCard, Activity, Settings as SettingsIcon, Search
+  LayoutDashboard, CreditCard, Activity, Settings as SettingsIcon, Search, Menu, X
 } from "lucide-react";
 import Link from "next/link";
 
@@ -24,6 +24,7 @@ export default function Settings() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [showQRModal, setShowQRModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -85,16 +86,29 @@ export default function Settings() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* SaaS Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex">
-        <div className="h-16 flex items-center px-6 border-b border-slate-100">
-          <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
-          <span className="font-heading font-bold text-slate-900 text-lg tracking-tight">SubSync</span>
+      <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:relative md:transform-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+          <div className="flex items-center">
+            <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
+            <span className="font-heading font-bold text-slate-900 text-lg tracking-tight">SubSync</span>
+          </div>
+          <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600">
+            <X className="h-5 w-5" />
+          </button>
         </div>
         
         <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Overview</div>
-          <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+          <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
             <LayoutDashboard className="h-5 w-5" /> Dashboard
           </Link>
           <a href="#" className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
@@ -105,7 +119,7 @@ export default function Settings() {
           </a>
           
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
-          <Link href="/settings" className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
+          <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
             <SettingsIcon className="h-5 w-5" /> Profile & Alerts
           </Link>
         </nav>
@@ -131,10 +145,15 @@ export default function Settings() {
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
         
         {/* Top Navbar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 shrink-0">
-          <div className="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-64 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all opacity-50">
-            <Search className="h-4 w-4 text-slate-400 mr-2" />
-            <input type="text" placeholder="Search..." disabled className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400" />
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:text-slate-900 transition-colors">
+              <Menu className="h-6 w-6" />
+            </button>
+            <div className="hidden sm:flex items-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-64 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all opacity-50">
+              <Search className="h-4 w-4 text-slate-400 mr-2" />
+              <input type="text" placeholder="Search..." disabled className="bg-transparent border-none outline-none text-sm w-full placeholder:text-slate-400" />
+            </div>
           </div>
           
           <div className="flex items-center gap-4">
