@@ -143,7 +143,7 @@ export default function Dashboard() {
       )}
 
       {/* SaaS Sidebar */}
-      <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:relative md:transform-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
           <div className="flex items-center">
             <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
