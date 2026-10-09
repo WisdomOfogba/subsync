@@ -31,6 +31,8 @@ export default function CardsPage() {
   // Modals
   const [isCreating, setIsCreating] = useState(false);
   const [newCardName, setNewCardName] = useState("Netflix Card");
+  const [newCardAmount, setNewCardAmount] = useState("4500");
+  const [newCardCurrency, setNewCardCurrency] = useState("NGN");
   
   const [isFunding, setIsFunding] = useState(false);
   const [fundAmount, setFundAmount] = useState("");
@@ -90,7 +92,7 @@ export default function CardsPage() {
       const res = await fetch("/api/cards", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, name: newCardName })
+        body: JSON.stringify({ userId: user.id, name: newCardName, amount: parseFloat(newCardAmount) || 0, currency: newCardCurrency })
       });
       const data = await res.json();
       if (data.success) {
@@ -407,7 +409,29 @@ export default function CardsPage() {
             />
           </div>
           
-          <div className="flex gap-3 pt-4">
+          <div>
+              <label className="text-sm font-medium text-slate-700 block mb-1.5">Expected Monthly Cost</label>
+              <div className="flex gap-2">
+                <select 
+                  value={newCardCurrency}
+                  onChange={(e) => setNewCardCurrency(e.target.value)}
+                  className="w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"
+                >
+                  <option value="NGN">NGN</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+                <input 
+                  type="number" 
+                  value={newCardAmount}
+                  onChange={(e) => setNewCardAmount(e.target.value)}
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => (document.getElementById('create_card_modal') as HTMLDialogElement)?.close()} className="flex-1">
               Cancel
             </Button>
@@ -438,7 +462,29 @@ export default function CardsPage() {
             <p className="text-xs text-slate-500 mt-2">Available wallet balance: ₦{(user.walletBalance || 0).toLocaleString()}</p>
           </div>
           
-          <div className="flex gap-3 pt-4">
+          <div>
+              <label className="text-sm font-medium text-slate-700 block mb-1.5">Expected Monthly Cost</label>
+              <div className="flex gap-2">
+                <select 
+                  value={newCardCurrency}
+                  onChange={(e) => setNewCardCurrency(e.target.value)}
+                  className="w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none"
+                >
+                  <option value="NGN">NGN</option>
+                  <option value="USD">USD</option>
+                  <option value="EUR">EUR</option>
+                  <option value="GBP">GBP</option>
+                </select>
+                <input 
+                  type="number" 
+                  value={newCardAmount}
+                  onChange={(e) => setNewCardAmount(e.target.value)}
+                  className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                  required
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => (document.getElementById('fund_card_modal') as HTMLDialogElement)?.close()} className="flex-1">
               Cancel
             </Button>

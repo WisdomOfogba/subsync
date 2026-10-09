@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const { userId, name } = await req.json();
+    const { userId, name, amount, currency } = await req.json();
     if (!userId || !name) return NextResponse.json({ success: false, error: "Missing fields" }, { status: 400 });
 
     const cardNumber = "4" + generateRandomNumeric(15); // Fake Visa
@@ -50,8 +50,8 @@ export async function POST(req: Request) {
       data: {
         userId,
         name: `${name} (Virtual Card)`,
-        amount: 0,
-        currency: "USD",
+        amount: amount || 0,
+        currency: currency || "USD",
         category: "Software",
         nextChargeDate: nextMonth,
         status: "ACTIVE",
