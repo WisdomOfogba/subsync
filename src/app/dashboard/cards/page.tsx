@@ -121,7 +121,7 @@ export default function CardsPage() {
       if (data.success) {
         // Update local state
         setCards(cards.map(c => c.id === selectedCardId ? { ...c, balance: c.balance + amount } : c));
-        const updatedUser = { ...user, walletBalance: user.walletBalance - amount };
+        const updatedUser = { ...user, walletBalance: (user.walletBalance || 0) - amount };
         setUser(updatedUser);
         localStorage.setItem("subsync_user", JSON.stringify(updatedUser));
         
