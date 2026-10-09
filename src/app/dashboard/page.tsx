@@ -182,6 +182,9 @@ export default function Dashboard() {
           <Link href="/dashboard/transactions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
             <Activity className="h-5 w-5" /> Transactions
           </Link>
+          <Link href="/dashboard/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
+            <BarChart3 className="h-5 w-5" /> Analytics
+          </Link>
           
           <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
           <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
@@ -287,13 +290,13 @@ export default function Dashboard() {
                     <th className="px-6 py-3 font-medium">Category</th>
                     <th className="px-6 py-3 font-medium">Amount</th>
                     <th className="px-6 py-3 font-medium">Next Charge</th>
-                    <th className="px-6 py-3 font-medium text-right">Actions</th>
+                    <th className="px-6 py-3 font-medium">Status</th><th className="px-6 py-3 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {subscriptions.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                         No commitments found. Click "New Commitment" to get started.
                       </td>
                     </tr>
@@ -323,8 +326,40 @@ export default function Dashboard() {
                         <td className="px-6 py-4 text-slate-500">
                           {new Date(sub.nextChargeDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="px-6 py-4">
+                            {sub.status === 'ACTIVE' && <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 border border-green-200">Active</span>}
+                            {sub.status === 'Pending Approval' && <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">Pending</span>}
+                            {sub.status === 'CANCELLED' && <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 border border-slate-200">Cancelled</span>}
+                          </td>
+<td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+{sub.status === 'Pending Approval' && (
+  <>
+    <button onClick={async () => {
+      const res = await fetch(`/api/subscriptions/${sub.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'ACTIVE' }) });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscriptions(subscriptions.map(s => s.id === sub.id ? data.subscription : s));
+      }
+    }} className="text-[10px] text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded font-medium transition-colors">Approve</button>
+    <button onClick={async () => {
+      const res = await fetch(`/api/subscriptions/${sub.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'CANCELLED' }) });
+      if (res.ok) {
+        const data = await res.json();
+        setSubscriptions(subscriptions.map(s => s.id === sub.id ? data.subscription : s));
+      }
+    }} className="text-[10px] text-white bg-slate-400 hover:bg-slate-500 px-2 py-1 rounded font-medium transition-colors">Cancel</button>
+  </>
+)}
+{sub.status === 'ACTIVE' && (
+  <button onClick={async () => {
+    const res = await fetch(`/api/subscriptions/${sub.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'CANCELLED' }) });
+    if (res.ok) {
+      const data = await res.json();
+      setSubscriptions(subscriptions.map(s => s.id === sub.id ? data.subscription : s));
+    }
+  }} className="text-[10px] text-red-600 bg-red-50 hover:bg-red-100 px-2 py-1 rounded font-medium transition-colors border border-red-200">Cancel</button>
+)}
                           {sub.lastInteractedAt && (Date.now() - new Date(sub.lastInteractedAt).getTime() > 90 * 24 * 60 * 60 * 1000) && (
                             <button onClick={() => handleMarkUsed(sub.id)} className="text-xs text-blue-600 hover:underline mr-2">Mark Used</button>
                           )}
