@@ -315,7 +315,7 @@ export default function LandingPage() {
       <footer className="border-t border-gray-100 bg-white py-12">
         <div className="container mx-auto px-6 max-w-5xl flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
           <div className="flex items-center gap-3 mb-4 md:mb-0">
-            <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-6 w-6 rounded-sm object-contain" />
+            <img src="/Subsynclogo.svg" alt="SubSync Logo" className="h-6 w-6 rounded-sm object-contain" />
             <div className="font-heading font-semibold text-gray-900">SubSync</div>
           </div>
           <div>&copy; 2026 SubSync. All rights reserved.</div>

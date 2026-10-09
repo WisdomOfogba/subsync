@@ -22,7 +22,7 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full border-b border-gray-100 bg-white/80 backdrop-blur-md z-50">
       <div className="container mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/Subsync Logo.jpg" alt="SubSync Logo" width={32} height={32} className="rounded-md object-contain" />
+          <Image src="/Subsynclogo.svg" alt="SubSync Logo" width={32} height={32} className="rounded-md object-contain" />
           <div className="font-heading font-semibold tracking-tight text-gray-900 text-xl hidden sm:block">SubSync</div>
         </Link>
         

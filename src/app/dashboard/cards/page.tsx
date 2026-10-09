@@ -202,7 +202,7 @@ export default function CardsPage() {
       <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
           <div className="flex items-center">
-            <img src="/Subsync Logo.jpg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
+            <img src="/Subsynclogo.svg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
             <span className="font-heading font-bold text-slate-900 text-lg tracking-tight">SubSync</span>
           </div>
           <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600">
