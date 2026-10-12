@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { billingCycleLabel, getUpcomingChargeDate } from '@/lib/utils';
 
 export async function POST(req: Request) {
   try {
@@ -43,7 +44,10 @@ export async function POST(req: Request) {
           replyMessage = "I don't recognize this account. Please connect your Telegram via the SubSync settings page first.";
         } else {
           // Prepare context
-          const subsContext = user.subscriptions.map(s => `- ${s.name}: ₦${s.amount.toLocaleString()} (${s.category}, next billing: ${new Date(s.nextChargeDate).toDateString()})`).join('\n');
+          const subsContext = user.subscriptions.map(s => {
+            const next = getUpcomingChargeDate(s.nextChargeDate, s.billingCycle);
+            return `- ${s.name}: ₦${s.amount.toLocaleString()} (${s.category}, ${billingCycleLabel(s.billingCycle)}, next billing: ${next.toDateString()})`;
+          }).join('\n');
           
           const prompt = `You are SubSync AI, a helpful and concise financial assistant on Telegram.
 The user asked: "${text}"

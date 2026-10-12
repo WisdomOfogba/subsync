@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getUpcomingChargeDate } from '@/lib/utils';
+
+const ALLOWED_CYCLES = new Set(["WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"]);
 
 export async function GET(req: Request) {
   try {
@@ -15,7 +18,20 @@ export async function GET(req: Request) {
       orderBy: { createdAt: 'desc' }
     });
 
-    return NextResponse.json({ success: true, subscriptions });
+    const rolled = await Promise.all(subscriptions.map(async (sub) => {
+      const upcoming = getUpcomingChargeDate(sub.nextChargeDate, sub.billingCycle);
+      const stored = new Date(sub.nextChargeDate);
+      stored.setHours(0, 0, 0, 0);
+      if (upcoming.getTime() === stored.getTime()) {
+        return sub;
+      }
+      return prisma.subscription.update({
+        where: { id: sub.id },
+        data: { nextChargeDate: upcoming }
+      });
+    }));
+
+    return NextResponse.json({ success: true, subscriptions: rolled });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -24,11 +40,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { userId, name, amount, currency, category, nextChargeDate } = data;
+    const { userId, name, amount, currency, category, nextChargeDate, billingCycle } = data;
 
     if (!userId || !name || !amount || !nextChargeDate) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
+
+    const cycle = ALLOWED_CYCLES.has(billingCycle) ? billingCycle : "MONTHLY";
+    const upcoming = getUpcomingChargeDate(nextChargeDate, cycle);
 
     const subscription = await prisma.subscription.create({
       data: {
@@ -37,7 +56,8 @@ export async function POST(req: Request) {
         amount: parseFloat(amount),
         currency: currency || "NGN",
         category: category || "General",
-        nextChargeDate: new Date(nextChargeDate),
+        billingCycle: cycle,
+        nextChargeDate: upcoming,
         status: "Pending Approval" // Defaults to pending to match the permission-first flow
       }
     });

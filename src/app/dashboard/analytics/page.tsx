@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Home, CreditCard, Activity, Settings, LogOut, BarChart3, Menu, ChevronDown, Monitor, Cpu, Home as HomeIcon, Zap, Music } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
-import { convertCurrency } from '@/lib/utils';
+import { convertCurrency, toMonthlyAmount } from '@/lib/utils';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#ec4899', '#10b981'];
 
@@ -47,11 +47,11 @@ export default function AnalyticsPage() {
   // Process data for charts
   const baseCurrency = user.baseCurrency || 'NGN';
   const totalSpend = subscriptions.reduce((sum, sub) => {
-    return sum + convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency);
+    return sum + toMonthlyAmount(convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency), sub.billingCycle);
   }, 0);
   
   const categoryData = subscriptions.reduce((acc: any, sub) => {
-    const converted = convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency);
+    const converted = toMonthlyAmount(convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency), sub.billingCycle);
     const existing = acc.find((item: any) => item.name === sub.category);
     if (existing) {
       existing.value += converted;

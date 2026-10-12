@@ -8,7 +8,7 @@ import {
   Plus, Trash2, Loader2, Mail, CreditCard, LayoutDashboard, 
   Settings as SettingsIcon, Bell, Search, Activity, Menu, X, BarChart3
 } from "lucide-react";
-import { convertCurrency } from "@/lib/utils";
+import { billingCycleLabel, convertCurrency, daysUntil, getUpcomingChargeDate, toMonthlyAmount } from "@/lib/utils";
 import Link from "next/link";
 
 const PRESET_SUBS = ["Netflix", "Spotify", "Apple Music", "Showmax", "DSTV", "MTN Data", "AWS", "Vercel"];
@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [isAlertTesting, setIsAlertTesting] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const [newSub, setNewSub] = useState({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming" });
+  const [newSub, setNewSub] = useState({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming", billingCycle: "MONTHLY" });
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +63,7 @@ export default function Dashboard() {
           currency: newSub.currency,
           category: newSub.category,
           nextChargeDate: new Date(newSub.date).toISOString(),
+          billingCycle: newSub.billingCycle,
           userId: user.id
         })
       });
@@ -70,7 +71,7 @@ export default function Dashboard() {
         const data = await res.json();
         addSubscription(data.subscription);
         setIsModalOpen(false);
-        setNewSub({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming" });
+        setNewSub({ name: "Netflix", customName: "", amount: "", currency: "NGN", date: "", category: "Streaming", billingCycle: "MONTHLY" });
       }
     } catch (error) {
       console.error("Failed to add commitment", error);
@@ -108,11 +109,8 @@ export default function Dashboard() {
     if (!user?.email) return alert("User email is missing");
     setIsAlertTesting(sub.id);
     try {
-      const nextDate = new Date(sub.nextChargeDate);
-      const today = new Date();
-      const diffTime = nextDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const daysLeft = diffDays > 0 ? diffDays : 0;
+      const nextDate = getUpcomingChargeDate(sub.nextChargeDate, sub.billingCycle || "MONTHLY");
+      const daysLeft = daysUntil(nextDate);
 
       const res = await fetch('/api/alerts/send', {
         method: 'POST',
@@ -148,7 +146,7 @@ export default function Dashboard() {
   const baseCurrency = user?.baseCurrency || "NGN";
   const currencySymbol = baseCurrency === 'USD' ? '$' : baseCurrency === 'EUR' ? '€' : baseCurrency === 'GBP' ? '£' : '₦';
   const totalMonthly = subscriptions.reduce((acc, sub) => {
-    return acc + convertCurrency(sub.amount, sub.currency || "NGN", baseCurrency);
+    return acc + toMonthlyAmount(convertCurrency(sub.amount, sub.currency || "NGN", baseCurrency), sub.billingCycle);
   }, 0);
   const totalYearly = totalMonthly * 12;
 
@@ -293,6 +291,7 @@ export default function Dashboard() {
                     <th className="px-6 py-3 font-medium">Service</th>
                     <th className="px-6 py-3 font-medium">Category</th>
                     <th className="px-6 py-3 font-medium">Amount</th>
+                    <th className="px-6 py-3 font-medium">Cycle</th>
                     <th className="px-6 py-3 font-medium">Next Charge</th>
                     <th className="px-6 py-3 font-medium">Status</th><th className="px-6 py-3 font-medium text-right">Actions</th>
                   </tr>
@@ -300,8 +299,8 @@ export default function Dashboard() {
                 <tbody className="divide-y divide-slate-100">
                   {subscriptions.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
-                        No commitments found. Click "New Commitment" to get started.
+                      <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
+                        No commitments found. Click &quot;New Commitment&quot; to get started.
                       </td>
                     </tr>
                   ) : (
@@ -328,7 +327,21 @@ export default function Dashboard() {
                           {sub.amount.toLocaleString()}
                         </td>
                         <td className="px-6 py-4 text-slate-500">
-                          {new Date(sub.nextChargeDate).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          {billingCycleLabel(sub.billingCycle)}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {(() => {
+                            const next = getUpcomingChargeDate(sub.nextChargeDate, sub.billingCycle || "MONTHLY");
+                            const left = daysUntil(next);
+                            return (
+                              <span>
+                                {next.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                <span className="block text-xs text-slate-400">
+                                  {left === 0 ? "Due today" : `${left} day${left === 1 ? "" : "s"} left`}
+                                </span>
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="px-6 py-4">
                             {sub.status === 'ACTIVE' && <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700 border border-green-200">Active</span>}
@@ -452,6 +465,20 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Billing Cycle</label>
+                <select
+                  value={newSub.billingCycle}
+                  onChange={(e) => setNewSub({...newSub, billingCycle: e.target.value})}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
+                >
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="MONTHLY">Monthly</option>
+                  <option value="QUARTERLY">Every 3 months</option>
+                  <option value="YEARLY">Yearly</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Next Charge Date</label>
                 <input 
                   type="date" required
@@ -459,6 +486,7 @@ export default function Dashboard() {
                   onChange={(e) => setNewSub({...newSub, date: e.target.value})}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                 />
+                <p className="text-xs text-slate-400">If this date has already passed, we will jump to the next {newSub.billingCycle === "YEARLY" ? "year" : newSub.billingCycle === "WEEKLY" ? "week" : newSub.billingCycle === "QUARTERLY" ? "quarter" : "month"}.</p>
               </div>
 
               <div className="space-y-1.5">

@@ -19,6 +19,7 @@ interface Subscription {
   currency: string;
   category: string;
   nextChargeDate: string;
+  billingCycle?: string;
   status: string;
   paymentMethod?: string;
   lastInteractedAt?: string;
