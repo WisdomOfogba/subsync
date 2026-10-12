@@ -145,7 +145,11 @@ export default function Dashboard() {
 
   if (!mounted || !user) return null;
 
-  const totalMonthly = subscriptions.reduce((acc, sub) => acc + sub.amount, 0);
+  const baseCurrency = user?.baseCurrency || "NGN";
+  const currencySymbol = baseCurrency === 'USD' ? '$' : baseCurrency === 'EUR' ? '€' : baseCurrency === 'GBP' ? '£' : '₦';
+  const totalMonthly = subscriptions.reduce((acc, sub) => {
+    return acc + convertCurrency(sub.amount, sub.currency || "NGN", baseCurrency);
+  }, 0);
   const totalYearly = totalMonthly * 12;
 
   return (
@@ -249,11 +253,11 @@ export default function Dashboard() {
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
               <p className="text-sm font-medium text-slate-500">Total Monthly Burn</p>
               <div className="mt-2 flex items-baseline gap-2">
-                <span className="text-3xl font-bold text-slate-900">₦{totalMonthly.toLocaleString()}</span>
+                <span className="text-3xl font-bold text-slate-900">{currencySymbol}{Math.round(totalMonthly).toLocaleString()}</span>
                 <span className="text-xs font-medium text-red-500 bg-red-50 px-1.5 py-0.5 rounded">Active</span>
               </div>
               <p className="text-xs text-slate-400 mt-2 border-t border-slate-50 pt-2">
-                Projected Yearly: <strong className="text-slate-600">₦{totalYearly.toLocaleString()}</strong>
+                Projected Yearly: <strong className="text-slate-600">{currencySymbol}{Math.round(totalYearly).toLocaleString()}</strong>
               </p>
             </div>
             
@@ -423,7 +427,7 @@ export default function Dashboard() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Amount (₦)</label>
+                <label className="text-sm font-medium text-slate-700">Amount ({newSub.currency === 'USD' ? '$' : newSub.currency === 'EUR' ? '€' : newSub.currency === 'GBP' ? '£' : '₦'})</label>
                 <input 
                   type="number" required
                   value={newSub.amount}
@@ -434,25 +438,11 @@ export default function Dashboard() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Currency</label>
+                <label className="text-sm font-medium text-slate-700">Currency</label>
                 <select 
                   value={newSub.currency}
                   onChange={(e) => setNewSub({...newSub, currency: e.target.value})}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white"
-                >
-                  <option value="NGN">NGN (₦)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                </select>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Currency</label>
-                <select 
-                  value={newSub.currency}
-                  onChange={(e) => setNewSub({...newSub, currency: e.target.value})}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 bg-white"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
                 >
                   <option value="NGN">NGN (₦)</option>
                   <option value="USD">USD ($)</option>

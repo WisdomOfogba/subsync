@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Home, CreditCard, Activity, Settings, LogOut, BarChart3, Menu, ChevronDown, Monitor, Cpu, Home as HomeIcon, Zap, Music } from 'lucide-react';
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
+import { convertCurrency } from '@/lib/utils';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#ec4899', '#10b981'];
 
@@ -44,14 +45,18 @@ export default function AnalyticsPage() {
   if (!mounted || !user) return null;
 
   // Process data for charts
-  const totalSpend = subscriptions.reduce((sum, sub) => sum + sub.amount, 0);
+  const baseCurrency = user.baseCurrency || 'NGN';
+  const totalSpend = subscriptions.reduce((sum, sub) => {
+    return sum + convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency);
+  }, 0);
   
   const categoryData = subscriptions.reduce((acc: any, sub) => {
+    const converted = convertCurrency(sub.amount, sub.currency || 'NGN', baseCurrency);
     const existing = acc.find((item: any) => item.name === sub.category);
     if (existing) {
-      existing.value += sub.amount;
+      existing.value += converted;
     } else {
-      acc.push({ name: sub.category, value: sub.amount });
+      acc.push({ name: sub.category, value: converted });
     }
     return acc;
   }, []).sort((a: any, b: any) => b.value - a.value);
@@ -153,7 +158,7 @@ export default function AnalyticsPage() {
           <div className="text-center mb-10">
             <p className="text-slate-500 font-semibold mb-2">Total spending</p>
             <h1 className="text-5xl font-bold text-slate-900 tracking-tight">
-              {getCurrencySymbol(user.baseCurrency || 'NGN')}{totalSpend.toLocaleString()}
+              {getCurrencySymbol(user.baseCurrency || 'NGN')}{Math.round(totalSpend).toLocaleString()}
             </h1>
           </div>
 
@@ -213,7 +218,7 @@ export default function AnalyticsPage() {
                     </div>
                   </div>
                   <div className="font-bold text-slate-900 text-lg">
-                    {getCurrencySymbol(user.baseCurrency || 'NGN')}{cat.value.toLocaleString()}
+                    {getCurrencySymbol(user.baseCurrency || 'NGN')}{Math.round(cat.value).toLocaleString()}
                   </div>
                 </div>
               );
