@@ -5,6 +5,8 @@ interface User {
   name: string;
   email: string;
   telegramChatId?: string;
+  whatsappPhone?: string;
+  alertPreference?: string;
   baseCurrency?: string;
   walletBalance?: number;
   paystackDva?: string;

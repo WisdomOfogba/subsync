@@ -1,18 +1,22 @@
 import { NextResponse } from 'next/server';
+import { wantsChannel } from '@/lib/assistant';
+import { sendWhatsAppAlert } from '@/lib/whatsapp';
 
 export async function POST(req: Request) {
   try {
-    const { userEmail, userName, telegramChatId, alertPreference, subscriptionName, amountDue, daysLeft } = await req.json();
+    const { userEmail, userName, telegramChatId, whatsappPhone, alertPreference, subscriptionName, amountDue, daysLeft } = await req.json();
 
     const brevoApiKey = process.env.BREVO_API_KEY;
     const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
 
     let emailSent = false;
     let telegramSent = false;
+    let whatsappSent = false;
     let errors = [];
 
-    const sendEmail = alertPreference === 'Email Only' || alertPreference === 'Email & Telegram' || !alertPreference;
-    const sendTelegram = (alertPreference === 'Telegram Only' || alertPreference === 'Email & Telegram') && telegramChatId;
+    const sendEmail = wantsChannel(alertPreference, "email");
+    const sendTelegram = wantsChannel(alertPreference, "telegram") && telegramChatId;
+    const sendWhatsApp = wantsChannel(alertPreference, "whatsapp") && whatsappPhone;
 
     // Send Email via Brevo
     if (sendEmail && brevoApiKey) {
@@ -74,13 +78,23 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!emailSent && !telegramSent && errors.length > 0) {
+    // Send WhatsApp
+    if (sendWhatsApp) {
+      try {
+        await sendWhatsAppAlert(whatsappPhone, { userName, subscriptionName, amountDue, daysLeft });
+        whatsappSent = true;
+      } catch (e: any) {
+        errors.push("WhatsApp error: " + e.message);
+      }
+    }
+
+    if (!emailSent && !telegramSent && !whatsappSent && errors.length > 0) {
       return NextResponse.json({ success: false, error: errors.join(" | ") }, { status: 500 });
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: `Alert sent! Email: ${emailSent}, Telegram: ${telegramSent}` 
+      message: `Alert sent! Email: ${emailSent}, Telegram: ${telegramSent}, WhatsApp: ${whatsappSent}` 
     });
 
   } catch (error: any) {

@@ -13,7 +13,9 @@ model User {
   email              String         @unique
   password           String
   name               String?
-  telegramChatId     String?        
+  telegramChatId     String?
+  whatsappPhone      String?
+  alertPreference    String         @default("Email Only")
   walletBalance      Float          @default(0)
   paystackCustomerCode String?
   paystackDva        String?        // Dedicated Virtual Account Number
@@ -64,6 +66,8 @@ model Subscription {
   nextChargeDate   DateTime
   status           String    @default("ACTIVE")
   paymentMethod    String    @default("DIRECT_DEBIT") // "DIRECT_DEBIT", "VIRTUAL_CARD"
+  decision         String?     
+  reminderSentAt   DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   lastInteractedAt DateTime? @default(now())

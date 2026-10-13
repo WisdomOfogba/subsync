@@ -18,13 +18,14 @@ export default function Settings() {
   const [formData, setFormData] = useState({
     name: "",
     telegramChatId: "",
-    alertPreference: "Email & Telegram",
+    whatsappPhone: "",
+    alertPreference: "Email Only",
     baseCurrency: "NGN",
   });
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const [showQRModal, setShowQRModal] = useState(false);
+  const [showQRModal, setShowQRModal] = useState<"telegram" | "whatsapp" | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
@@ -36,7 +37,8 @@ export default function Settings() {
       setFormData({
         name: savedUser.name || "",
         telegramChatId: savedUser.telegramChatId || "",
-        alertPreference: "Email & Telegram",
+        whatsappPhone: savedUser.whatsappPhone || "",
+        alertPreference: savedUser.alertPreference || "Email Only",
         baseCurrency: savedUser.baseCurrency || "NGN",
       });
 
@@ -50,6 +52,8 @@ export default function Settings() {
             setFormData(prev => ({
               ...prev,
               telegramChatId: data.user.telegramChatId || prev.telegramChatId,
+              whatsappPhone: data.user.whatsappPhone || prev.whatsappPhone,
+              alertPreference: data.user.alertPreference || prev.alertPreference,
               name: data.user.name || prev.name,
               baseCurrency: data.user.baseCurrency || prev.baseCurrency,
             }));
@@ -62,7 +66,7 @@ export default function Settings() {
     }
   }, [router, setUser]);
 
-  // Poll for telegram connection when modal is open
+  // Poll for chat connection when a QR modal is open
   useEffect(() => {
     if (!showQRModal || !user) return;
     
@@ -70,12 +74,17 @@ export default function Settings() {
       try {
         const res = await fetch(`/api/users/${user.id}?t=${Date.now()}`);
         const data = await res.json();
-        if (data.success && data.user.telegramChatId) {
-          // Success! They connected.
+        if (!data.success || !data.user) return;
+        const linked = showQRModal === "telegram" ? data.user.telegramChatId : data.user.whatsappPhone;
+        if (linked) {
           setUser(data.user);
           localStorage.setItem("subsync_user", JSON.stringify(data.user));
-          setFormData(prev => ({ ...prev, telegramChatId: data.user.telegramChatId }));
-          setShowQRModal(false); // Close the modal automatically
+          setFormData(prev => ({
+            ...prev,
+            telegramChatId: data.user.telegramChatId || prev.telegramChatId,
+            whatsappPhone: data.user.whatsappPhone || prev.whatsappPhone,
+          }));
+          setShowQRModal(null);
         }
       } catch (error) {
         console.error("Polling error", error);
@@ -99,6 +108,7 @@ export default function Settings() {
         body: JSON.stringify({
           name: formData.name,
           telegramChatId: formData.telegramChatId,
+          alertPreference: formData.alertPreference,
           baseCurrency: formData.baseCurrency
         })
       });
@@ -126,6 +136,12 @@ export default function Settings() {
   };
 
   if (!mounted || !user) return null;
+
+  const whatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "").replace(/\D/g, "");
+  const whatsappLink = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`CONNECT ${user.id}`)}`
+    : "";
+  const telegramLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "subsy_nc_bot"}?start=${user.id}`;
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -281,9 +297,12 @@ export default function Settings() {
                       onChange={(e) => setFormData({...formData, alertPreference: e.target.value})}
                       className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
                     >
-                      <option>Email Only (Default)</option>
-                      <option>Telegram Only</option>
-                      <option>Email & Telegram</option>
+                      <option value="Email Only">Email Only (Default)</option>
+                      <option value="Telegram Only">Telegram Only</option>
+                      <option value="WhatsApp Only">WhatsApp Only</option>
+                      <option value="Email & Telegram">Email & Telegram</option>
+                      <option value="Email & WhatsApp">Email & WhatsApp</option>
+                      <option value="All Channels">Email, Telegram & WhatsApp</option>
                     </select>
                   </div>
 
@@ -327,7 +346,7 @@ export default function Settings() {
                           </a>
                           <button 
                             type="button"
-                            onClick={() => setShowQRModal(true)}
+                            onClick={() => setShowQRModal("telegram")}
                             className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
                           >
                             OR SCAN QR
@@ -337,29 +356,59 @@ export default function Settings() {
                     </div>
 
                     {/* WhatsApp Integration Card */}
-                    <div className="p-5 rounded-xl border border-slate-200 bg-slate-50 shadow-sm flex flex-col justify-between opacity-75">
+                    <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-[#25D366]/10 flex items-center justify-center grayscale">
+                            <div className="h-10 w-10 rounded-full bg-[#25D366]/10 flex items-center justify-center">
                               <svg className="h-5 w-5 text-[#25D366]" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
                               </svg>
                             </div>
-                            <h4 className="font-semibold text-slate-500">WhatsApp</h4>
+                            <h4 className="font-semibold text-slate-900">WhatsApp</h4>
                           </div>
-                          <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-amber-100 text-amber-700 rounded-full">Coming Soon</span>
+                          {user.whatsappPhone ? (
+                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full">Connected</span>
+                          ) : (
+                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-slate-500 rounded-full">Not Connected</span>
+                          )}
                         </div>
-                        <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+                        <p className="text-xs text-slate-500 mb-6 leading-relaxed">
                           Get alerts and manage your subscriptions directly through WhatsApp using our official Business API.
                         </p>
                       </div>
                       
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-200">
-                        <button disabled className="inline-flex h-8 items-center justify-center rounded-lg bg-slate-200 px-4 text-xs font-medium text-slate-400 cursor-not-allowed">
-                          Connect App
-                        </button>
-                      </div>
+                      {user.whatsappPhone ? (
+                        <div className="pt-4 border-t border-slate-100">
+                          <p className="text-xs text-slate-400 font-medium">Number: •••••{user.whatsappPhone.slice(-4)}</p>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                          {whatsappLink ? (
+                            <a 
+                              href={whatsappLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-4 text-xs font-medium text-white shadow-sm hover:bg-[#1fb855] transition-colors"
+                            >
+                              Connect App
+                            </a>
+                          ) : (
+                            <button type="button" disabled className="inline-flex h-8 items-center justify-center rounded-lg bg-slate-200 px-4 text-xs font-medium text-slate-400 cursor-not-allowed">
+                              Add WhatsApp number in env
+                            </button>
+                          )}
+                          {whatsappLink && (
+                            <button 
+                              type="button"
+                              onClick={() => setShowQRModal("whatsapp")}
+                              className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
+                            >
+                              OR SCAN QR
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -385,18 +434,20 @@ export default function Settings() {
       {showQRModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
-            <h2 className="text-xl font-heading font-bold text-slate-900 mb-2">Connect Telegram</h2>
-            <p className="text-sm text-slate-500 mb-6">Scan this QR code with your phone's camera to instantly link your account.</p>
+            <h2 className="text-xl font-heading font-bold text-slate-900 mb-2">
+              Connect {showQRModal === "whatsapp" ? "WhatsApp" : "Telegram"}
+            </h2>
+            <p className="text-sm text-slate-500 mb-6">Scan this QR code with your phone&apos;s camera to instantly link your account.</p>
             
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 inline-block mb-6">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`)}`} 
-                alt="Scan to connect Telegram" 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(showQRModal === "whatsapp" ? whatsappLink : telegramLink)}`} 
+                alt={`Scan to connect ${showQRModal === "whatsapp" ? "WhatsApp" : "Telegram"}`} 
                 className="h-48 w-48 mx-auto mix-blend-multiply"
               />
             </div>
             
-            <Button onClick={() => setShowQRModal(false)} variant="outline" className="w-full rounded-lg h-11">
+            <Button onClick={() => setShowQRModal(null)} variant="outline" className="w-full rounded-lg h-11">
               Close
             </Button>
           </div>

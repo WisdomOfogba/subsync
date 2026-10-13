@@ -3,13 +3,15 @@ import prisma from '@/lib/prisma';
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { telegramChatId, name, baseCurrency } = await req.json();
+    const { telegramChatId, whatsappPhone, alertPreference, name, baseCurrency } = await req.json();
     const { id } = await params;
 
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         ...(telegramChatId !== undefined && { telegramChatId }),
+        ...(whatsappPhone !== undefined && { whatsappPhone }),
+        ...(alertPreference !== undefined && { alertPreference }),
         ...(name !== undefined && { name }),
         ...(baseCurrency !== undefined && { baseCurrency }),
       }

@@ -119,7 +119,8 @@ export default function Dashboard() {
           userEmail: user.email,
           userName: user.name || "User",
           telegramChatId: user.telegramChatId || "",
-          alertPreference: user.telegramChatId ? "Email & Telegram" : "Email Only",
+          whatsappPhone: user.whatsappPhone || "",
+          alertPreference: user.alertPreference || (user.telegramChatId ? "Email & Telegram" : "Email Only"),
           subscriptionName: sub.name,
           amountDue: sub.amount,
           daysLeft: daysLeft

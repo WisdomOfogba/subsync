@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { billingCycleLabel, getUpcomingChargeDate } from '@/lib/utils';
+import { answerSubscriptionQuestion } from '@/lib/assistant';
 
 export async function POST(req: Request) {
   try {
@@ -43,44 +43,7 @@ export async function POST(req: Request) {
         if (!user) {
           replyMessage = "I don't recognize this account. Please connect your Telegram via the SubSync settings page first.";
         } else {
-          // Prepare context
-          const subsContext = user.subscriptions.map(s => {
-            const next = getUpcomingChargeDate(s.nextChargeDate, s.billingCycle);
-            return `- ${s.name}: ₦${s.amount.toLocaleString()} (${s.category}, ${billingCycleLabel(s.billingCycle)}, next billing: ${next.toDateString()})`;
-          }).join('\n');
-          
-          const prompt = `You are SubSync AI, a helpful and concise financial assistant on Telegram.
-The user asked: "${text}"
-
-Here is their current subscription data:
-${subsContext || "No active subscriptions."}
-
-Current date: ${new Date().toDateString()}
-
-Answer the user's question precisely based on the data. If they ask a general question, answer it. Keep it conversational, short, and use markdown for formatting. DO NOT answer questions completely unrelated to finance/subscriptions.`;
-
-          const geminiApiKey = process.env.GEMINI_API_KEY;
-          if (geminiApiKey) {
-            try {
-              const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: prompt }] }]
-                })
-              });
-              const aiData = await aiRes.json();
-              if (aiData.candidates && aiData.candidates[0]?.content?.parts[0]?.text) {
-                replyMessage = aiData.candidates[0].content.parts[0].text;
-              } else {
-                replyMessage = "Sorry, my AI brain is experiencing a temporary glitch!";
-              }
-            } catch (e) {
-              replyMessage = "Sorry, I couldn't connect to my AI server right now.";
-            }
-          } else {
-             replyMessage = "I am not fully awake yet. The developer needs to add the GEMINI_API_KEY to the environment variables.";
-          }
+          replyMessage = await answerSubscriptionQuestion(user, text, "Telegram");
         }
       } else {
         replyMessage = "I didn't understand that command. Try asking me about your subscriptions!";
