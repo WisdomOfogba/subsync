@@ -35,13 +35,13 @@ Answer the user's question precisely based on the data. If they ask a general qu
 
   const candidateModels = [
     process.env.GEMINI_MODEL,
+    "gemini-flash-latest",
     "gemini-3.8-flash",
-    "gemini-2.0-flash",
   ].filter(Boolean) as string[];
 
   // Filter out deprecated models known to return 404
   const modelsToTry = Array.from(new Set(
-    candidateModels.map(m => (m === "gemini-2.5-flash" || m === "gemini-1.5-flash" ? "gemini-3.8-flash" : m))
+    candidateModels.map(m => (m === "gemini-2.5-flash" || m === "gemini-1.5-flash" ? "gemini-flash-latest" : m))
   ));
 
   let lastError = "";

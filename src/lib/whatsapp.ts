@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const GRAPH_URL = "https://graph.facebook.com/v26.0";
+const GRAPH_URL = `https://graph.facebook.com/${process.env.WA_GRAPH_VERSION || "v21.0"}`;
 
 function getWhatsAppCredentials() {
   const phoneNumberId = process.env.WA_PHONE_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
