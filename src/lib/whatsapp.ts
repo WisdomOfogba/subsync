@@ -1,4 +1,4 @@
-const GRAPH_URL = "https://graph.facebook.com/v25.0";
+const GRAPH_URL = "https://graph.facebook.com/v26.0";
 
 export function whatsappConnectUrl(userId: string) {
   const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "").replace(/\D/g, "");
@@ -134,7 +134,7 @@ export async function sendWhatsAppReminder(
 }
  
 export function verifyWhatsAppSignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = process.env.WHATSAPP_APP_SECRET;
+  const secret = SAPP_APP_SECRET;
   if (!secret) return true;
   if (!signatureHeader) return false;
   const expected = "sha256=" + crypto.createHmac("sha256", secret).update(rawBody).digest("hex");

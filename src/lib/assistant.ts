@@ -32,23 +32,22 @@ Answer the user's question precisely based on the data. If they ask a general qu
     return "I am not fully awake yet. The developer needs to add the GEMINI_API_KEY to the environment variables.";
   }
 
-  try {
-    const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
-      })
-    });
-    const aiData = await aiRes.json();
-    if (aiData.candidates && aiData.candidates[0]?.content?.parts[0]?.text) {
-      return aiData.candidates[0].content.parts[0].text as string;
-    }
-    return "Sorry, my AI brain is experiencing a temporary glitch!";
-  } catch {
-    return "Sorry, I couldn't connect to my AI server right now.";
+
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const aiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": geminiApiKey },
+    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
   }
-}
+);
+  const aiData = await aiRes.json();
+  if (!aiRes.ok) console.error("Gemini error:", aiRes.status, JSON.stringify(aiData?.error ?? aiData));
+  const answer = aiData.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("");
+  if (answer) return answer;
+  return "Sorry, my AI brain is experiencing a temporary glitch!";
+  }
 
 export function wantsChannel(alertPreference: string | undefined, channel: "email" | "telegram" | "whatsapp") {
   const pref = (alertPreference || "Email Only").toLowerCase();

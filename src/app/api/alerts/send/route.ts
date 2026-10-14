@@ -1,10 +1,12 @@
+import prisma from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { wantsChannel } from '@/lib/assistant';
-import { sendWhatsAppAlert } from '@/lib/whatsapp';
+import { sendWhatsAppReminder, sendWhatsAppAlert } from '@/lib/whatsapp';
+
 
 export async function POST(req: Request) {
   try {
-    const { userEmail, userName, telegramChatId, whatsappPhone, alertPreference, subscriptionName, amountDue, daysLeft } = await req.json();
+    const { userEmail, userName, telegramChatId, whatsappPhone, alertPreference, subscriptionId, subscriptionName, amountDue, daysLeft } = await req.json();
 
     const brevoApiKey = process.env.BREVO_API_KEY;
     const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
@@ -17,6 +19,7 @@ export async function POST(req: Request) {
     const sendEmail = wantsChannel(alertPreference, "email");
     const sendTelegram = wantsChannel(alertPreference, "telegram") && telegramChatId;
     const sendWhatsApp = wantsChannel(alertPreference, "whatsapp") && whatsappPhone;
+    console.log("alert debug:", { alertPreference, whatsappPhone, sendWhatsApp: Boolean(sendWhatsApp) });
 
     // Send Email via Brevo
     if (sendEmail && brevoApiKey) {
@@ -80,18 +83,34 @@ export async function POST(req: Request) {
 
     // Send WhatsApp
     if (sendWhatsApp) {
-      try {
-        await sendWhatsAppAlert(whatsappPhone, { userName, subscriptionName, amountDue, daysLeft });
-        whatsappSent = true;
-      } catch (e: any) {
-        errors.push("WhatsApp error: " + e.message);
-      }
+  try {
+    try {
+      if (!subscriptionId) throw new Error("no subscriptionId");
+      await sendWhatsAppReminder(whatsappPhone, {
+        subscriptionId,
+        subscriptionName,
+        amountText: `₦${amountDue.toLocaleString()}`,
+        daysLeft,
+      });
+      await prisma.subscription.update({
+        where: { id: subscriptionId },
+        data: { reminderSentAt: new Date() },
+      });
+    } catch {
+      // No id, or Meta refused the buttons (user hasn't messaged in 24 hours): send the old alert instead.
+      await sendWhatsAppAlert(whatsappPhone, { userName, subscriptionName, amountDue, daysLeft });
     }
+    whatsappSent = true;
+  } catch (e: any) {
+    errors.push("WhatsApp error: " + e.message);
+  }
+}
 
     if (!emailSent && !telegramSent && !whatsappSent && errors.length > 0) {
       return NextResponse.json({ success: false, error: errors.join(" | ") }, { status: 500 });
     }
 
+    console.log("alert result:", { emailSent, telegramSent, whatsappSent, errors });
     return NextResponse.json({ 
       success: true, 
       message: `Alert sent! Email: ${emailSent}, Telegram: ${telegramSent}, WhatsApp: ${whatsappSent}` 
