@@ -51,7 +51,7 @@ export async function POST(req: Request) {
 
       const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
       if (telegramToken) {
-        await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        const sendRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -60,6 +60,19 @@ export async function POST(req: Request) {
             parse_mode: 'Markdown'
           })
         });
+        if (!sendRes.ok) {
+          // If Telegram Markdown parsing failed, retry as plain text
+          const errData = await sendRes.json().catch(() => ({}));
+          console.warn("Telegram Markdown send failed, retrying plain text:", errData);
+          await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: replyMessage
+            })
+          });
+        }
       }
     }
 

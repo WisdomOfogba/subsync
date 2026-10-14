@@ -13,7 +13,8 @@ export async function GET(req: Request) {
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
 
-  if (mode === "subscribe" && token === process.env.WA_VERIFY_TOKEN && challenge) {
+  const expectedToken = process.env.WA_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN;
+  if (mode === "subscribe" && token === expectedToken && challenge) {
     return new NextResponse(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
   }
 
@@ -27,13 +28,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  after(async () => {
-    try {
-      await processInbound(raw);
-    } catch (error) {
-      console.error("WhatsApp Webhook Error:", error);
-    }
-  });
+  try {
+    await processInbound(raw);
+  } catch (error) {
+    console.error("WhatsApp Webhook Error:", error);
+  }
  
   return NextResponse.json({ ok: true });
 }
@@ -54,10 +53,11 @@ async function processInbound(raw: string) {
   const text: string | undefined = inbound.text?.body?.trim();
   if (!text) return;
  
-  // 2) Account linking: "CONNECT <user id>"
-  const connectMatch = text.match(new RegExp(`(?:connect|/start)\\s+(${UUID_RE.source})`, "i"));
-  const uuid = connectMatch?.[1] || null;
-  if (uuid) {
+  // 2) Account linking: "CONNECT <user id>" or UUID in message
+  const uuidMatch = text.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+  const uuid = uuidMatch?.[0] || null;
+  const isConnectIntent = text.toLowerCase().includes("connect") || text.toLowerCase().includes("start") || text.trim() === uuid;
+  if (uuid && isConnectIntent) {
     let replyMessage: string;
     try {
       await prisma.user.updateMany({

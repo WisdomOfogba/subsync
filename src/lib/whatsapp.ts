@@ -2,6 +2,12 @@ import crypto from "crypto";
 
 const GRAPH_URL = "https://graph.facebook.com/v26.0";
 
+function getWhatsAppCredentials() {
+  const phoneNumberId = process.env.WA_PHONE_ID || process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const token = process.env.WA_ACCESS_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN;
+  return { phoneNumberId, token };
+}
+
 export function whatsappConnectUrl(userId: string) {
   const number = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "").replace(/\D/g, "");
   const text = encodeURIComponent(`CONNECT ${userId}`);
@@ -9,10 +15,10 @@ export function whatsappConnectUrl(userId: string) {
 }
 
 export async function sendWhatsAppText(to: string, body: string) {
-  const phoneNumberId = process.env.WA_PHONE_ID;
-  const token = process.env.WA_ACCESS_TOKEN;
+  const { phoneNumberId, token } = getWhatsAppCredentials();
   if (!phoneNumberId || !token) {
-    throw new Error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    console.error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    return;
   }
 
   const response = await fetch(`${GRAPH_URL}/${phoneNumberId}/messages`, {
@@ -30,7 +36,9 @@ export async function sendWhatsAppText(to: string, body: string) {
   });
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    const errorText = await response.text();
+    console.error(`WhatsApp send text failed (${response.status}):`, errorText);
+    throw new Error(errorText);
   }
 }
 
@@ -41,10 +49,10 @@ export async function sendWhatsAppAlert(to: string, payload: {
   daysLeft: number;
 }) {
   const template = process.env.WHATSAPP_ALERT_TEMPLATE;
-  const phoneNumberId = process.env.WA_PHONE_ID;
-  const token = process.env.WA_ACCESS_TOKEN;
+  const { phoneNumberId, token } = getWhatsAppCredentials();
   if (!phoneNumberId || !token) {
-    throw new Error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    console.error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    return;
   }
 
   const body = template
@@ -97,10 +105,10 @@ export async function sendWhatsAppReminder(
   to: string,
   p: { subscriptionId: string; subscriptionName: string; amountText: string; daysLeft: number }
 ) {
-  const phoneNumberId = process.env.WA_PHONE_ID;
-  const token = process.env.WA_ACCESS_TOKEN;
+  const { phoneNumberId, token } = getWhatsAppCredentials();
   if (!phoneNumberId || !token) {
-    throw new Error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    console.error("WhatsApp is not configured. Add WA_PHONE_ID and WA_ACCESS_TOKEN.");
+    return;
   }
  
   const when = p.daysLeft <= 0 ? "today" : `in ${p.daysLeft} day${p.daysLeft === 1 ? "" : "s"}`;
