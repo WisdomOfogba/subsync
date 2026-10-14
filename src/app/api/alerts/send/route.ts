@@ -16,10 +16,32 @@ export async function POST(req: Request) {
     let whatsappSent = false;
     let errors = [];
 
-    const sendEmail = wantsChannel(alertPreference, "email");
-    const sendTelegram = wantsChannel(alertPreference, "telegram") && telegramChatId;
-    const sendWhatsApp = wantsChannel(alertPreference, "whatsapp") && whatsappPhone;
-    console.log("alert debug:", { alertPreference, whatsappPhone, sendWhatsApp: Boolean(sendWhatsApp) });
+    // Check DB for latest user phone/chatId if missing from payload
+    let resolvedWhatsAppPhone = whatsappPhone;
+    let resolvedTelegramChatId = telegramChatId;
+    let resolvedAlertPreference = alertPreference;
+    if ((!resolvedWhatsAppPhone || !resolvedTelegramChatId) && userEmail) {
+      try {
+        const dbUser = await prisma.user.findUnique({ where: { email: userEmail } });
+        if (dbUser) {
+          if (!resolvedWhatsAppPhone && dbUser.whatsappPhone) resolvedWhatsAppPhone = dbUser.whatsappPhone;
+          if (!resolvedTelegramChatId && dbUser.telegramChatId) resolvedTelegramChatId = dbUser.telegramChatId;
+          if (!resolvedAlertPreference) resolvedAlertPreference = dbUser.alertPreference;
+        }
+      } catch (err) {
+        console.error("Failed to query DB user for alerts:", err);
+      }
+    }
+
+    const sendEmail = wantsChannel(resolvedAlertPreference, "email");
+    const sendTelegram = wantsChannel(resolvedAlertPreference, "telegram") && resolvedTelegramChatId;
+    const sendWhatsApp = wantsChannel(resolvedAlertPreference, "whatsapp") && resolvedWhatsAppPhone;
+    console.log("alert debug:", { 
+      alertPreference: resolvedAlertPreference, 
+      whatsappPhone: resolvedWhatsAppPhone, 
+      telegramChatId: resolvedTelegramChatId,
+      sendWhatsApp: Boolean(sendWhatsApp) 
+    });
 
     // Send Email via Brevo
     if (sendEmail && brevoApiKey) {
@@ -69,13 +91,26 @@ export async function POST(req: Request) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            chat_id: telegramChatId,
+            chat_id: resolvedTelegramChatId,
             text: message,
             parse_mode: 'Markdown'
           })
         });
-        if (response.ok) telegramSent = true;
-        else errors.push(await response.text());
+        if (response.ok) {
+          telegramSent = true;
+        } else {
+          // If markdown fails, retry plain text
+          const plainRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: resolvedTelegramChatId,
+              text: message.replace(/[*_]/g, '')
+            })
+          });
+          if (plainRes.ok) telegramSent = true;
+          else errors.push(await plainRes.text());
+        }
       } catch (e: any) {
         errors.push("Telegram error: " + e.message);
       }
@@ -83,28 +118,29 @@ export async function POST(req: Request) {
 
     // Send WhatsApp
     if (sendWhatsApp) {
-  try {
-    try {
-      if (!subscriptionId) throw new Error("no subscriptionId");
-      await sendWhatsAppReminder(whatsappPhone, {
-        subscriptionId,
-        subscriptionName,
-        amountText: `₦${amountDue.toLocaleString()}`,
-        daysLeft,
-      });
-      await prisma.subscription.update({
-        where: { id: subscriptionId },
-        data: { reminderSentAt: new Date() },
-      });
-    } catch {
-      // No id, or Meta refused the buttons (user hasn't messaged in 24 hours): send the old alert instead.
-      await sendWhatsAppAlert(whatsappPhone, { userName, subscriptionName, amountDue, daysLeft });
+      try {
+        try {
+          if (!subscriptionId) throw new Error("no subscriptionId");
+          await sendWhatsAppReminder(resolvedWhatsAppPhone, {
+            subscriptionId,
+            subscriptionName,
+            amountText: `₦${amountDue.toLocaleString()}`,
+            daysLeft,
+          });
+          await prisma.subscription.update({
+            where: { id: subscriptionId },
+            data: { reminderSentAt: new Date() },
+          });
+        } catch {
+          // Fall back to template or text alert
+          await sendWhatsAppAlert(resolvedWhatsAppPhone, { userName, subscriptionName, amountDue, daysLeft });
+        }
+        whatsappSent = true;
+      } catch (e: any) {
+        console.error("WhatsApp send alert failure:", e);
+        errors.push("WhatsApp error: " + e.message);
+      }
     }
-    whatsappSent = true;
-  } catch (e: any) {
-    errors.push("WhatsApp error: " + e.message);
-  }
-}
 
     if (!emailSent && !telegramSent && !whatsappSent && errors.length > 0) {
       return NextResponse.json({ success: false, error: errors.join(" | ") }, { status: 500 });

@@ -109,6 +109,7 @@ export default function Settings() {
         body: JSON.stringify({
           name: formData.name,
           telegramChatId: formData.telegramChatId,
+          whatsappPhone: formData.whatsappPhone,
           alertPreference: formData.alertPreference,
           baseCurrency: formData.baseCurrency
         })
@@ -316,48 +317,53 @@ export default function Settings() {
                             </div>
                             <h4 className="font-semibold text-slate-900">WhatsApp</h4>
                           </div>
-                          {user.whatsappPhone ? (
+                          {(formData.whatsappPhone || user.whatsappPhone) ? (
                             <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full">Connected</span>
                           ) : (
                             <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-slate-500 rounded-full">Not Connected</span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+                        <p className="text-xs text-slate-500 mb-3 leading-relaxed">
                           Get alerts and manage your subscriptions directly through WhatsApp using our official Business API.
                         </p>
+
+                        <div className="space-y-1 mb-4">
+                          <label className="text-[11px] font-medium text-slate-600">WhatsApp Phone Number</label>
+                          <input 
+                            type="text"
+                            placeholder="e.g. 2348012345678"
+                            value={formData.whatsappPhone || ""}
+                            onChange={(e) => setFormData({...formData, whatsappPhone: e.target.value})}
+                            className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
+                          />
+                        </div>
                       </div>
                       
-                      {user.whatsappPhone ? (
-                        <div className="pt-4 border-t border-slate-100">
-                          <p className="text-xs text-slate-400 font-medium">Number: •••••{user.whatsappPhone.slice(-4)}</p>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                          {whatsappLink ? (
-                            <a 
-                              href={whatsappLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-4 text-xs font-medium text-white shadow-sm hover:bg-[#1fb855] transition-colors"
-                            >
-                              Connect App
-                            </a>
-                          ) : (
-                            <button type="button" disabled className="inline-flex h-8 items-center justify-center rounded-lg bg-slate-200 px-4 text-xs font-medium text-slate-400 cursor-not-allowed">
-                              Add WhatsApp number in env
-                            </button>
-                          )}
-                          {whatsappLink && (
-                            <button 
-                              type="button"
-                              onClick={() => setShowQRModal("whatsapp")}
-                              className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
-                            >
-                              OR SCAN QR
-                            </button>
-                          )}
-                        </div>
-                      )}
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                        {whatsappLink ? (
+                          <a 
+                            href={whatsappLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-4 text-xs font-medium text-white shadow-sm hover:bg-[#1fb855] transition-colors"
+                          >
+                            Connect App
+                          </a>
+                        ) : (
+                          <button type="button" disabled className="inline-flex h-8 items-center justify-center rounded-lg bg-slate-200 px-4 text-xs font-medium text-slate-400 cursor-not-allowed">
+                            Add WhatsApp number in env
+                          </button>
+                        )}
+                        {whatsappLink && (
+                          <button 
+                            type="button"
+                            onClick={() => setShowQRModal("whatsapp")}
+                            className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
+                          >
+                            OR SCAN QR
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

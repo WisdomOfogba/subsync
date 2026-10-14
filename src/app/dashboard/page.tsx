@@ -35,6 +35,16 @@ export default function Dashboard() {
     const savedUser = JSON.parse(savedUserStr);
     setUser(savedUser);
     fetchSubscriptions(savedUser.id);
+
+    fetch(`/api/users/${savedUser.id}?t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.user) {
+          setUser(data.user);
+          localStorage.setItem("subsync_user", JSON.stringify(data.user));
+        }
+      })
+      .catch(err => console.error("Failed to sync user data:", err));
   }, [router, setUser, setSubscriptions]);
 
   const fetchSubscriptions = async (userId: string) => {
