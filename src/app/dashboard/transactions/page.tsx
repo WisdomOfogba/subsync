@@ -8,6 +8,7 @@ import {
   Activity, Menu, X, BarChart3, Loader2, ArrowDownLeft, ArrowUpRight, ShoppingBag
 } from "lucide-react";
 import Link from "next/link";
+import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 
 interface Transaction {
   id: string;
@@ -76,47 +77,11 @@ export default function TransactionsPage() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
       {/* SaaS Sidebar */}
-      <aside className={`w-64 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-100">
-          <div className="flex items-center">
-            <img src="/Subsynclogo.svg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
-            <span className="font-heading font-bold text-slate-900 text-lg tracking-tight">SubSync</span>
-          </div>
-          <button onClick={() => setIsMobileMenuOpen(false)} className="md:hidden text-slate-400 hover:text-slate-600">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Overview</div>
-          <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <LayoutDashboard className="h-5 w-5" /> Dashboard
-          </Link>
-          <Link href="/dashboard/cards" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <CreditCard className="h-5 w-5" /> Virtual Cards
-          </Link>
-          <Link href="/dashboard/transactions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 bg-slate-50 text-primary rounded-xl font-medium">
-            <Activity className="h-5 w-5" /> Transactions
-          </Link>
-          <Link href="/dashboard/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <BarChart3 className="h-5 w-5" /> Analytics
-          </Link>
-          
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
-          <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <SettingsIcon className="h-5 w-5" /> Profile & Alerts
-          </Link>
-        </nav>
-      </aside>
+      <DashboardSidebar
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden relative">

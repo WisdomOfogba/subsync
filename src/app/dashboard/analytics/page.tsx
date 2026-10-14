@@ -6,6 +6,7 @@ import { Home, CreditCard, Activity, Settings, LogOut, BarChart3, Menu, ChevronD
 import { useStore } from '@/store/useStore';
 import { useRouter } from 'next/navigation';
 import { convertCurrency, toMonthlyAmount } from '@/lib/utils';
+import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#f59e0b', '#ec4899', '#10b981'];
 
@@ -76,59 +77,27 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex flex-col md:flex-row text-slate-900 font-sans">
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <img src="/Subsynclogo.svg" alt="SubSync Logo" className="h-6 w-6 rounded-sm object-contain" />
-          <span className="font-heading font-bold text-lg text-slate-900">SubSync</span>
-        </div>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-500">
-          <Menu className="h-6 w-6" />
-        </button>
-      </div>
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* SaaS Sidebar */}
+      <DashboardSidebar
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+      />
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed md:sticky top-0 left-0 z-50 h-screen w-64 bg-white border-r border-slate-200 flex flex-col
-        transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
-      `}>
-        <div className="p-6 flex items-center gap-2">
-          <img src="/Subsynclogo.svg" alt="SubSync Logo" className="h-7 w-7 rounded-sm mr-3 object-contain" />
-          <span className="font-heading font-bold text-xl text-slate-900">SubSync</span>
-        </div>
-        
-        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3">Overview</div>
-          <Link href="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <Home className="h-5 w-5" /> Dashboard
-          </Link>
-          <Link href="/dashboard/cards" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <CreditCard className="h-5 w-5" /> Virtual Cards
-          </Link>
-          <Link href="/dashboard/transactions" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <Activity className="h-5 w-5" /> Transactions
-          </Link>
-          <Link href="/dashboard/analytics" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 bg-slate-100 text-slate-900 rounded-xl font-semibold">
-            <BarChart3 className="h-5 w-5" /> Analytics
-          </Link>
-          
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-3 mt-8">Settings</div>
-          <Link href="/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium transition-colors">
-            <Settings className="h-5 w-5" /> Account Settings
-          </Link>
-        </nav>
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+        {/* Top Navbar */}
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 shrink-0">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="md:hidden text-slate-500 hover:text-slate-900 transition-colors">
+              <Menu className="h-6 w-6" />
+            </button>
+            <h1 className="text-lg font-semibold text-slate-900">Spending Analytics</h1>
+          </div>
+        </header>
 
-        <div className="p-4 border-t border-slate-200">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl font-medium transition-colors w-full text-left">
-            <LogOut className="h-5 w-5" /> Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content - Mobile App Style */}
-      <main className="flex-1 w-full max-w-md mx-auto bg-white min-h-screen md:max-w-xl lg:max-w-3xl md:border-x border-slate-100 shadow-sm relative">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8">
+          <div className="w-full max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         
         {/* Top Navigation Pills */}
         <div className="sticky top-0 bg-white/80 backdrop-blur-md z-30 pt-6 pb-4 px-6 border-b border-slate-100">
@@ -224,8 +193,10 @@ export default function AnalyticsPage() {
               );
             })}
           </div>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
+  </div>
   );
 }
