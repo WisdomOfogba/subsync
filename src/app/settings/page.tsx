@@ -6,9 +6,8 @@ import { useStore } from "@/store/useStore";
 import { Button } from "@/components/ui/Button";
 import { 
   Loader2, Save, User as UserIcon, Bell, Smartphone, 
-  LayoutDashboard, CreditCard, Activity, Settings as SettingsIcon, Search, Menu, X, BarChart3
+  Search, Menu, CheckCircle2, ShieldCheck, RefreshCw, X
 } from "lucide-react";
-import Link from "next/link";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 
 export default function Settings() {
@@ -26,10 +25,21 @@ export default function Settings() {
   
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
-  const [showQRModal, setShowQRModal] = useState<"telegram" | "whatsapp" | null>(null);
+  const [showQRModal, setShowQRModal] = useState<"telegram" | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    useEffect(() => {
+  // WhatsApp OTP Verification state
+  const [whatsappNumberInput, setWhatsappNumberInput] = useState("");
+  const [otpStep, setOtpStep] = useState<"idle" | "code_sent">("idle");
+  const [otpCode, setOtpCode] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
+  const [otpStatusMsg, setOtpStatusMsg] = useState("");
+  const [otpStatusType, setOtpStatusType] = useState<"info" | "error" | "success">("info");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+
+  useEffect(() => {
     setMounted(true);
     const savedUserStr = localStorage.getItem("subsync_user");
     if (savedUserStr) {
@@ -42,6 +52,7 @@ export default function Settings() {
         alertPreference: savedUser.alertPreference || "Email Only",
         baseCurrency: savedUser.baseCurrency || "NGN",
       });
+      setWhatsappNumberInput(savedUser.whatsappPhone || "");
 
       // Fetch latest user state to sync DB updates (like Telegram linking or balance changes)
       fetch(`/api/users/${savedUser.id}?t=${Date.now()}`)
@@ -58,6 +69,7 @@ export default function Settings() {
               name: data.user.name || prev.name,
               baseCurrency: data.user.baseCurrency || prev.baseCurrency,
             }));
+            setWhatsappNumberInput(data.user.whatsappPhone || "");
           }
         })
         .catch(err => console.error("Failed to fetch latest user data", err));
@@ -67,7 +79,7 @@ export default function Settings() {
     }
   }, [router, setUser]);
 
-  // Poll for chat connection when a QR modal is open
+  // Poll for chat connection when Telegram QR modal is open
   useEffect(() => {
     if (!showQRModal || !user) return;
     
@@ -76,14 +88,12 @@ export default function Settings() {
         const res = await fetch(`/api/users/${user.id}?t=${Date.now()}`);
         const data = await res.json();
         if (!data.success || !data.user) return;
-        const linked = showQRModal === "telegram" ? data.user.telegramChatId : data.user.whatsappPhone;
-        if (linked) {
+        if (data.user.telegramChatId) {
           setUser(data.user);
           localStorage.setItem("subsync_user", JSON.stringify(data.user));
           setFormData(prev => ({
             ...prev,
-            telegramChatId: data.user.telegramChatId || prev.telegramChatId,
-            whatsappPhone: data.user.whatsappPhone || prev.whatsappPhone,
+            telegramChatId: data.user.telegramChatId,
           }));
           setShowQRModal(null);
         }
@@ -94,6 +104,117 @@ export default function Settings() {
 
     return () => clearInterval(intervalId);
   }, [showQRModal, user, setUser]);
+
+  const handleSendOtp = async () => {
+    if (!user) return;
+    const clean = whatsappNumberInput.replace(/\D/g, "");
+    if (clean.length < 10) {
+      setOtpStatusMsg("Please enter a valid phone number with country code (e.g. 234816367363)");
+      setOtpStatusType("error");
+      return;
+    }
+
+    setIsSendingOtp(true);
+    setOtpStatusMsg("");
+    try {
+      const res = await fetch("/api/whatsapp/verify/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, phone: clean }),
+      });
+      const data = await res.json();
+      if (data.success && data.verificationToken) {
+        setVerificationToken(data.verificationToken);
+        setOtpStep("code_sent");
+        setOtpStatusMsg(data.message || "Verification code sent to your WhatsApp!");
+        setOtpStatusType("info");
+      } else {
+        setOtpStatusMsg(data.error || "Failed to send code. Please try again.");
+        setOtpStatusType("error");
+      }
+    } catch (err: any) {
+      setOtpStatusMsg("Network error sending code. Please try again.");
+      setOtpStatusType("error");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!user || !verificationToken) return;
+    if (!otpCode || otpCode.trim().length !== 6) {
+      setOtpStatusMsg("Please enter the 6-digit verification code.");
+      setOtpStatusType("error");
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    setOtpStatusMsg("");
+    try {
+      const res = await fetch("/api/whatsapp/verify/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          phone: whatsappNumberInput,
+          code: otpCode.trim(),
+          verificationToken,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setUser(data.user);
+        localStorage.setItem("subsync_user", JSON.stringify(data.user));
+        setFormData(prev => ({
+          ...prev,
+          whatsappPhone: data.user.whatsappPhone,
+        }));
+        setOtpStep("idle");
+        setOtpCode("");
+        setVerificationToken("");
+        setIsEditingPhone(false);
+        setOtpStatusMsg("WhatsApp connected successfully!");
+        setOtpStatusType("success");
+        setTimeout(() => setOtpStatusMsg(""), 5000);
+      } else {
+        setOtpStatusMsg(data.error || "Incorrect or expired code. Please try again.");
+        setOtpStatusType("error");
+      }
+    } catch (err: any) {
+      setOtpStatusMsg("Network error verifying code.");
+      setOtpStatusType("error");
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleDisconnectWhatsApp = async () => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to disconnect WhatsApp alerts?")) return;
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ whatsappPhone: null }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUser(data.user);
+        localStorage.setItem("subsync_user", JSON.stringify(data.user));
+        setFormData(prev => ({ ...prev, whatsappPhone: "" }));
+        setWhatsappNumberInput("");
+        setOtpStep("idle");
+        setOtpCode("");
+        setVerificationToken("");
+        setIsEditingPhone(false);
+        setOtpStatusMsg("WhatsApp disconnected.");
+        setOtpStatusType("info");
+        setTimeout(() => setOtpStatusMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Disconnect error", err);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,19 +252,10 @@ export default function Settings() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("subsync_user");
-    setUser(null);
-    router.push("/login");
-  };
-
   if (!mounted || !user) return null;
 
-  const whatsappNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "").replace(/\D/g, "");
-  const whatsappLink = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`CONNECT ${user.id}`)}`
-    : "";
   const telegramLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || "subsy_nc_bot"}?start=${user.id}`;
+  const isWhatsAppConnected = Boolean(user.whatsappPhone && !isEditingPhone);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -213,20 +325,20 @@ export default function Settings() {
                       className="w-full rounded-lg border border-slate-100 px-3 py-2.5 text-sm text-slate-500 bg-slate-50 cursor-not-allowed"
                     />
                   </div>
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">Preferred Base Currency</label>
-                <select 
-                  value={formData.baseCurrency}
-                  onChange={(e) => setFormData({...formData, baseCurrency: e.target.value})}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
-                >
-                  <option value="NGN">NGN (₦)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                </select>
-                <p className="text-xs text-gray-400 mt-1">Your dashboard totals will be displayed in this currency.</p>
-              </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700">Preferred Base Currency</label>
+                    <select 
+                      value={formData.baseCurrency}
+                      onChange={(e) => setFormData({...formData, baseCurrency: e.target.value})}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all bg-white"
+                    >
+                      <option value="NGN">NGN (₦)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
+                    <p className="text-xs text-gray-400 mt-1">Your dashboard totals will be displayed in this currency.</p>
+                  </div>
                 </div>
               </section>
 
@@ -270,7 +382,9 @@ export default function Settings() {
                             <h4 className="font-semibold text-slate-900">Telegram Bot</h4>
                           </div>
                           {user.telegramChatId ? (
-                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full">Connected</span>
+                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> Connected
+                            </span>
                           ) : (
                             <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-slate-500 rounded-full">Not Connected</span>
                           )}
@@ -287,7 +401,7 @@ export default function Settings() {
                       ) : (
                         <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                           <a 
-                            href={`https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'subsy_nc_bot'}?start=${user.id}`}
+                            href={telegramLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex h-8 items-center justify-center rounded-lg bg-[#229ED9] px-4 text-xs font-medium text-white shadow-sm hover:bg-[#1f8cc0] transition-colors"
@@ -305,7 +419,7 @@ export default function Settings() {
                       )}
                     </div>
 
-                    {/* WhatsApp Integration Card */}
+                    {/* WhatsApp Integration Card with OTP Verification */}
                     <div className="p-5 rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-4">
@@ -317,51 +431,144 @@ export default function Settings() {
                             </div>
                             <h4 className="font-semibold text-slate-900">WhatsApp</h4>
                           </div>
-                          {(formData.whatsappPhone || user.whatsappPhone) ? (
-                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full">Connected</span>
+                          {isWhatsAppConnected ? (
+                            <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                              <CheckCircle2 className="h-3 w-3" /> Connected
+                            </span>
                           ) : (
                             <span className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold bg-slate-100 text-slate-500 rounded-full">Not Connected</span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mb-3 leading-relaxed">
-                          Get alerts and manage your subscriptions directly through WhatsApp using our official Business API.
-                        </p>
 
-                        <div className="space-y-1 mb-4">
-                          <label className="text-[11px] font-medium text-slate-600">WhatsApp Phone Number</label>
-                          <input 
-                            type="text"
-                            placeholder="e.g. 2348012345678"
-                            value={formData.whatsappPhone || ""}
-                            onChange={(e) => setFormData({...formData, whatsappPhone: e.target.value})}
-                            className="w-full rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                        {whatsappLink ? (
-                          <a 
-                            href={whatsappLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-4 text-xs font-medium text-white shadow-sm hover:bg-[#1fb855] transition-colors"
-                          >
-                            Connect App
-                          </a>
+                        {/* Connected State View */}
+                        {isWhatsAppConnected ? (
+                          <div className="space-y-4">
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Your WhatsApp is verified to receive renewal alerts, interact with our AI, and approve or cancel charges directly in chat.
+                            </p>
+                            <div className="p-3 bg-emerald-50/60 rounded-lg border border-emerald-100 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                                <span className="text-xs font-semibold text-emerald-900">+{user.whatsappPhone}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setIsEditingPhone(true)}
+                                  className="text-[11px] font-medium text-emerald-700 hover:text-emerald-900 transition-colors"
+                                >
+                                  Change
+                                </button>
+                                <span className="text-emerald-300">|</span>
+                                <button
+                                  type="button"
+                                  onClick={handleDisconnectWhatsApp}
+                                  className="text-[11px] font-medium text-rose-600 hover:text-rose-800 transition-colors"
+                                >
+                                  Disconnect
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         ) : (
-                          <button type="button" disabled className="inline-flex h-8 items-center justify-center rounded-lg bg-slate-200 px-4 text-xs font-medium text-slate-400 cursor-not-allowed">
-                            Add WhatsApp number in env
-                          </button>
-                        )}
-                        {whatsappLink && (
-                          <button 
-                            type="button"
-                            onClick={() => setShowQRModal("whatsapp")}
-                            className="text-[10px] text-slate-400 font-bold tracking-wider hover:text-slate-600 transition-colors uppercase"
-                          >
-                            OR SCAN QR
-                          </button>
+                          /* Verification Flow: Input Phone -> Send Code -> Enter OTP */
+                          <div className="space-y-3">
+                            <p className="text-xs text-slate-500 leading-relaxed">
+                              Enter your phone number to receive a verification code on WhatsApp. No app switching or manual messages required.
+                            </p>
+
+                            <div className="space-y-1">
+                              <label className="text-[11px] font-medium text-slate-600">WhatsApp Phone Number</label>
+                              <div className="flex gap-2">
+                                <input 
+                                  type="tel"
+                                  placeholder="e.g. 234816367363"
+                                  value={whatsappNumberInput}
+                                  disabled={otpStep === "code_sent"}
+                                  onChange={(e) => setWhatsappNumberInput(e.target.value)}
+                                  className="flex-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-white disabled:bg-slate-100 disabled:text-slate-500"
+                                />
+                                {otpStep === "idle" && (
+                                  <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={isSendingOtp || !whatsappNumberInput}
+                                    className="inline-flex h-8 items-center justify-center rounded-lg bg-[#25D366] px-3 text-xs font-medium text-white shadow-sm hover:bg-[#1fb855] disabled:opacity-50 transition-colors shrink-0"
+                                  >
+                                    {isSendingOtp ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                                    Send Code
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* OTP Entry Step */}
+                            {otpStep === "code_sent" && (
+                              <div className="space-y-2 p-3 bg-slate-50 rounded-lg border border-slate-200 animate-in fade-in duration-200">
+                                <div className="flex items-center justify-between">
+                                  <label className="text-[11px] font-semibold text-slate-700">Enter 6-Digit Code</label>
+                                  <button
+                                    type="button"
+                                    onClick={() => { setOtpStep("idle"); setOtpCode(""); }}
+                                    className="text-[10px] text-slate-400 hover:text-slate-600"
+                                  >
+                                    Change number
+                                  </button>
+                                </div>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    maxLength={6}
+                                    placeholder="••••••"
+                                    value={otpCode}
+                                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                                    className="w-32 tracking-widest text-center font-mono font-bold text-sm rounded-lg border border-slate-300 px-2 py-1.5 outline-none focus:border-primary focus:ring-1 focus:ring-primary bg-white"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={handleVerifyOtp}
+                                    disabled={isVerifyingOtp || otpCode.length !== 6}
+                                    className="inline-flex h-8 items-center justify-center rounded-lg bg-primary px-3 text-xs font-medium text-white shadow-sm hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                                  >
+                                    {isVerifyingOtp ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
+                                    Verify & Connect
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={handleSendOtp}
+                                    disabled={isSendingOtp}
+                                    className="text-xs text-slate-500 hover:text-slate-800 p-1"
+                                    title="Resend code"
+                                  >
+                                    <RefreshCw className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Status Message */}
+                            {otpStatusMsg && (
+                              <p className={`text-[11px] font-medium ${
+                                otpStatusType === "error" 
+                                  ? "text-rose-600" 
+                                  : otpStatusType === "success" 
+                                    ? "text-emerald-600" 
+                                    : "text-blue-600"
+                              }`}>
+                                {otpStatusMsg}
+                              </p>
+                            )}
+
+                            {isEditingPhone && (
+                              <button
+                                type="button"
+                                onClick={() => { setIsEditingPhone(false); setOtpStep("idle"); }}
+                                className="text-[11px] text-slate-400 hover:text-slate-600 underline"
+                              >
+                                Cancel edit
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -385,19 +592,19 @@ export default function Settings() {
         </div>
       </main>
 
-      {/* QR Code Modal */}
-      {showQRModal && (
+      {/* Telegram QR Code Modal */}
+      {showQRModal === "telegram" && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 text-center">
             <h2 className="text-xl font-heading font-bold text-slate-900 mb-2">
-              Connect {showQRModal === "whatsapp" ? "WhatsApp" : "Telegram"}
+              Connect Telegram
             </h2>
             <p className="text-sm text-slate-500 mb-6">Scan this QR code with your phone&apos;s camera to instantly link your account.</p>
             
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 inline-block mb-6">
               <img 
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(showQRModal === "whatsapp" ? whatsappLink : telegramLink)}`} 
-                alt={`Scan to connect ${showQRModal === "whatsapp" ? "WhatsApp" : "Telegram"}`} 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(telegramLink)}`} 
+                alt="Scan to connect Telegram" 
                 className="h-48 w-48 mx-auto mix-blend-multiply"
               />
             </div>

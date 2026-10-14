@@ -33,6 +33,7 @@ export async function sendWhatsAppText(to: string, body: string) {
       type: "text",
       text: { preview_url: false, body },
     }),
+    signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) {
@@ -93,6 +94,7 @@ export async function sendWhatsAppAlert(to: string, payload: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(8000),
   });
 
   if (!response.ok) {
@@ -136,6 +138,7 @@ export async function sendWhatsAppReminder(
         },
       },
     }),
+    signal: AbortSignal.timeout(8000),
   });
  
   if (!response.ok) {

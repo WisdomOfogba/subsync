@@ -19,20 +19,26 @@ export async function GET(req: Request) {
     });
 
     const rolled = await Promise.all(subscriptions.map(async (sub) => {
-      const upcoming = getUpcomingChargeDate(sub.nextChargeDate, sub.billingCycle);
-      const stored = new Date(sub.nextChargeDate);
-      stored.setHours(0, 0, 0, 0);
-      if (upcoming.getTime() === stored.getTime()) {
+      try {
+        const upcoming = getUpcomingChargeDate(sub.nextChargeDate, sub.billingCycle);
+        const stored = new Date(sub.nextChargeDate);
+        stored.setHours(0, 0, 0, 0);
+        if (upcoming.getTime() === stored.getTime()) {
+          return sub;
+        }
+        return await prisma.subscription.update({
+          where: { id: sub.id },
+          data: { nextChargeDate: upcoming }
+        });
+      } catch (updateErr) {
+        console.warn(`Rollover skip for subscription ${sub.id}:`, updateErr);
         return sub;
       }
-      return prisma.subscription.update({
-        where: { id: sub.id },
-        data: { nextChargeDate: upcoming }
-      });
     }));
 
     return NextResponse.json({ success: true, subscriptions: rolled });
   } catch (error: any) {
+    console.error("GET /api/subscriptions error:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
