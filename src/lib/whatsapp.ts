@@ -1,3 +1,5 @@
+import crypto from "crypto";
+
 const GRAPH_URL = "https://graph.facebook.com/v26.0";
 
 export function whatsappConnectUrl(userId: string) {
@@ -134,7 +136,7 @@ export async function sendWhatsAppReminder(
 }
  
 export function verifyWhatsAppSignature(rawBody: string, signatureHeader: string | null): boolean {
-  const secret = SAPP_APP_SECRET;
+  const secret = process.env.WHATSAPP_APP_SECRET || process.env.WA_APP_SECRET;
   if (!secret) return true;
   if (!signatureHeader) return false;
   const expected = "sha256=" + crypto.createHmac("sha256", secret).update(rawBody).digest("hex");

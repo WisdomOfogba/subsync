@@ -73,7 +73,7 @@ async function processInbound(raw: string) {
       replyMessage = "I couldn't link that account. Open Settings in SubSync and tap Connect App again.";
     }
     return sendWhatsAppText(from, replyMessage);
-  }``
+  }
  
   // 3) Typed KEEP / CANCEL / DONE
   const word = text.toLowerCase();
